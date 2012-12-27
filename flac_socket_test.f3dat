@@ -1,0 +1,41 @@
+;; this is the FLAC3D side of the FLAC3D/Python coupling example.
+
+;; FLAC3D is started by the Python program. When FLAC3D is started it
+;; is given this input file as a command line argument. To start the
+;; coupling example run this file by clicking the green button. The
+;; open_socket FISH function opens a connection to the Python
+;; program. FLAC3D then waits for the Python program to write a FISH
+;; parameter. 1000.1 is added to the value and it is sent back to the
+;; Python program. When FLAC3D receives a value of -1 from Python it
+;; exits the read/write loop.
+
+
+
+def open_socket
+  array data(1)
+  s = sopen(0,1,3333)
+
+  loop i(0, 1000)
+    oo = out('reading')
+    oo = sread(data, 1, 1)
+    oo = out(buildstr("got %1 from python server", data(1)))
+
+    if type(data(1)) = 1 then
+      if data(1)=-1 then
+        oo=out('breaking out of read/write loop')
+        exit
+      endif
+      data(1) = data(1) + 1000.1
+    endif
+    oo=swrite(data, 1, 1)
+
+  end_loop
+
+end
+@open_socket
+
+def close_socket
+  oo=sclose(1)
+  oo=out('closed socket connection')
+end
+@close_socket
