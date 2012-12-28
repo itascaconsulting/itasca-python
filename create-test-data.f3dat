@@ -1,0 +1,20 @@
+new
+
+def genIOtestdata
+  array a(1)
+  fp = open('testdata.fish', 1, 0)
+  a(1) = 1
+  oo = write(a, 1)
+  a(1) = 99.987
+  oo = write(a, 1)
+  a(1) = 'James'
+  oo = write(a, 1)
+  a(1) = vector(99.5, 89.3)
+  oo = write(a, 1)
+  a(1) = vector(7,8,9)
+  oo = write(a, 1)  
+  oo = close
+end
+@genIOtestdata
+
+  

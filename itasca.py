@@ -142,3 +142,50 @@ class ItascaSoftwareConnection(object):
 class FLAC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
         return "C:\\Program Files\\Itasca\\Flac3d400\\exe64\\flac3d400_gui_64.exe"
+
+
+class FishBinaryReader(object):
+    """
+    Read structured FISH binary files.
+
+    Call the constructor with the structured FISH filename and call
+    read() to read individual values. Return values are converted to
+    python types. Supports int, float, string, bool, v2 and v3.
+    """
+    def __init__(self, filename):
+        self.file = open(filename, "rb")
+        fishcode = self._read_int()
+        assert fishcode == 178278912, "invalid FISH binary file"
+
+    def _read_int(self):
+        data = self.file.read(struct.calcsize('i'))
+        value, = struct.unpack("i", data)
+        return value
+
+    def _read_double(self):
+        data = self.file.read(struct.calcsize('d'))
+        value, = struct.unpack("d", data)
+        return value
+
+    def read(self):
+        type_code = self._read_int()
+
+        if type_code == 1:  # int
+            return self._read_int()
+        if type_code == 8:  # bool
+            value = self._read_int()
+            return_value = True if value else False
+            return return_value
+        if type_code == 2:  # float
+            return self._read_double()
+        if type_code == 3:
+            length = self._read_int()
+            buffer_length = 4*(1+(length-1)/4)
+            format_string = "%is" % buffer_length
+            data = self.file.read(struct.calcsize(format_string))
+            return data [:length]
+        if type_code == 5:  # v2
+            return [self._read_double(), self._read_double()]
+        if type_code == 6:  # v3
+            return [self._read_double(), self._read_double(),
+                    self._read_double()]
