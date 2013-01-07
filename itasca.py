@@ -95,7 +95,6 @@ class ItascaFishSocketServer(object):
         self.conn.close()
 
 
-
 class ItascaSoftwareConnection(object):
     """
     Interface communication via FISH socket IO with an Itasca
@@ -142,6 +141,10 @@ class ItascaSoftwareConnection(object):
 class FLAC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
         return "C:\\Program Files\\Itasca\\Flac3d400\\exe64\\flac3d400_gui_64.exe"
+
+class PFC3D_Connection(ItascaSoftwareConnection):
+    def execuitable_name(self):
+        return "C:\\Program Files\\Itasca\\PFC3D400\\exe64\\evpfc3d_64.exe"
 
 
 class FishBinaryReader(object):

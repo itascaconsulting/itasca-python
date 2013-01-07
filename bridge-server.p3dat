@@ -1,0 +1,102 @@
+new
+
+;; fish python protocall:
+;;
+;; 10 signals a command to run:
+;;    read a string and execuit it as a command
+;;    return zero on success
+;; 11 signals a fish statement to execute and return the result of
+;;    read a string, execuit it as a fish expression and return the value.
+
+
+def inline
+  array data_in(1)
+  array tmp(1)
+  array data_out(1)
+end
+inline
+
+def execute_command
+    ;; take the string "scommand" write to a file and call the file.
+  status = open('pp_tempfile.dat',1,1)
+  tmp(1) = scommand
+  status = write(tmp,1)
+  status = close
+
+  command
+    call pp_tempfile.dat
+  end_command
+
+end
+
+def evalate_string
+    ;; wrap the string 'fstring' in a fish function, write to file, call
+    ;; return value is in ret_value
+  status = open('pp_temp.fis',1,1)
+  tmp(1) = 'def tmpfunc'
+  status = write(tmp,1)
+
+  tmp(1) = 'ret_value = ' + fstring
+  status = write(tmp,1)
+
+  tmp(1) = 'end'
+  status = write(tmp,1)
+
+  tmp(1) = 'tmpfunc'
+  status = write(tmp,1)
+
+  status = close
+
+  command
+    call pp_temp.fis
+  end_command
+end
+
+def open_socket
+  s = sopen(0,0)
+
+  loop i(0, 1000)
+    oo = out('reading')
+    oo = sread(data_in, 1, 0)
+    oo = out('got ' + string (data_in(1)) + ' from python server')
+    data_out(1) = 0
+
+    if type(data_in(1)) = 1 then
+
+      if data_in(1)=-1 then
+        oo=out('breaking out of server loop')
+        exit
+      endif
+
+      if data_in(1)=10 then
+         oo = sread(tmp, 1,0)
+         scommand = tmp(1)
+         execute_command
+      endif
+
+      if data_in(1)=11 then
+         oo = sread(tmp, 1,0)
+         fstring = tmp(1)
+         oo = out('got ' + fstring + ' from python server')
+         evalate_string
+         data_out(1) = ret_value
+      endif
+
+    else
+      oo=error("unknown input to PFC/python bridge server")
+    endif
+
+    oo=swrite(data_out, 1, 0)
+
+  end_loop
+
+end
+open_socket
+
+def close_socket
+  oo=sclose(1)
+  oo=out('closed socket connection')
+end
+close_socket
+
+
