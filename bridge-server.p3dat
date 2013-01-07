@@ -7,6 +7,8 @@ new
 ;;    return zero on success
 ;; 11 signals a fish statement to execute and return the result of
 ;;    read a string, execuit it as a fish expression and return the value.
+;; 12 signals a fish assignment statement to execute
+;;    read a string, execuit it as a fish expression and return zero
 
 
 def inline
@@ -18,6 +20,7 @@ inline
 
 def execute_command
     ;; take the string "scommand" write to a file and call the file.
+  oo=out('writing command')
   status = open('pp_tempfile.dat',1,1)
   tmp(1) = scommand
   status = write(tmp,1)
@@ -26,7 +29,6 @@ def execute_command
   command
     call pp_tempfile.dat
   end_command
-
 end
 
 def evalate_string
@@ -51,6 +53,46 @@ def evalate_string
     call pp_temp.fis
   end_command
 end
+
+def evalate_string_assign
+    ;; wrap the string 'fstring' in a fish function, write to file, call
+    ;; return value is in ret_value
+  status = open('pp_temp.fis',1,1)
+  tmp(1) = 'def tmpfunc'
+  status = write(tmp,1)
+
+  tmp(1) = fstring
+  status = write(tmp,1)
+
+  tmp(1) = 'end'
+  status = write(tmp,1)
+
+  tmp(1) = 'tmpfunc'
+  status = write(tmp,1)
+
+  status = close
+
+  command
+    call pp_temp.fis
+  end_command
+end
+
+def ball_id_head
+  if ball_head = null
+    ball_id_head = -1
+  else
+    ball_id_head = b_id(ball_head)
+  endif
+end
+
+def ball_id_next
+  if b_next(find_ball(current_id)) = null
+    ball_id_next = -1
+  else
+    ball_id_next = b_id(b_next(find_ball(current_id)))
+  endif
+end
+
 
 def open_socket
   s = sopen(0,0)
@@ -82,10 +124,19 @@ def open_socket
          data_out(1) = ret_value
       endif
 
+      if data_in(1)=12 then
+         oo = sread(tmp, 1,0)
+         fstring = tmp(1)
+         oo = out('got ' + fstring + ' from python server')
+         evalate_string_assign
+         data_out(1) = 0
+      endif
+
     else
       oo=error("unknown input to PFC/python bridge server")
     endif
 
+    oo=out('returning ' + string(data_out(1)) + ' to python')
     oo=swrite(data_out, 1, 0)
 
   end_loop
@@ -98,5 +149,3 @@ def close_socket
   oo=out('closed socket connection')
 end
 close_socket
-
-
