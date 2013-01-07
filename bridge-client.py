@@ -24,19 +24,62 @@ class pfcBridge(object):
         self._pfc.send(code)
         self._pfc.send(fish_string)
         res = self._pfc.receive()
-        print res
         return res
 
 
     def cmd(self, command):
         "execute a PFC3D command"
         assert type(command) == str
-        print "Sending", command
         self._pfc.send(10)
         self._pfc.send(command)
         res = self._pfc.receive()
         assert res == 0
 
+    def ball_list(self):
+        return ball_list(self)
+
+class ball_list(object):
+    "iterator object for list of balls"
+    def __init__(self, bridge):
+        self._bridge = bridge
+        self.current = pfc_ball(self._bridge.eval("ball_id_head"),
+                                self._bridge)
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.current.id==-1:
+            raise StopIteration
+        else:
+            retval = self.current
+            self._bridge.eval("current_id = %i" % self.current.id)
+            self.current = pfc_ball(self._bridge.eval("ball_id_next"),
+                                    self._bridge)
+            return retval
+
+class pfc_ball(object):
+    methods = """b_clist b_ctype b_xfix b_yfix b_zfix b_vfix
+b_rxfix b_ryfix b_rzfix b_rfix b_x b_y b_z b_vpos b_ux b_uy b_uz b_vu
+b_xvel b_yvel b_zvel b_vvel b_rxvel b_ryvel b_rzvel b_rvel b_xfob
+b_yfob b_zfob b_vfob b_xfap b_yfap b_zfap b_vfap b_xmom b_ymom b_zmom
+b_mom b_rad b_mass b_realmass b_moi b_dens b_kn b_ks b_shearmod
+b_poiss b_fric b_ex del_ball b_color b_xmap b_ymap b_zmap b_map
+b_shared b_type b_rot b_damp b_realmoi b_clump b_cllist b_extra
+b_stress b_vrvel b_vmom b_vmap b_vrfix b_xdisp b_ydisp b_zdisp b_vdisp
+b_delete b_thexp b_thfix b_thpob b_thpsrc b_thsheat b_thtemp
+b_thdeltemp b_perflag b_perBall b_xffap b_yffap b_zffap b_vffap
+b_multi_type b_realmassset b_realmoiset""".split()
+
+    def __init__(self, idn, bridge):
+        self.id = idn
+        self._bridge = bridge
+
+    def __getattr__(self, item):
+        fname = "b_" + item
+        if not fname in pfc_ball.methods:
+            raise AttributeError("no pfc_ball fish intrinsic " + fname)
+        fish_string = "%s(find_ball(%i))" % (fname, self.id)
+        res = self._bridge.eval(fish_string)
+        return lambda : res
 
 
 
@@ -62,8 +105,8 @@ if __name__=='__main__':
     pfc.cmd("set grav 0 0 -9.81")
 
 
-    #for b in pfc.ball_list():
-#        print ball.x()
+    for ball in pfc.ball_list():
+        print ball.x(), ball.y(), ball.z()
 
 
     pfc._pfc.send(-1)
