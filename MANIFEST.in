@@ -1,0 +1,2 @@
+recursive-include itasca *.py
+recursive-include tests *.py
