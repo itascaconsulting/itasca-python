@@ -28,7 +28,7 @@ class pfcBridge(object):
 
 
     def cmd(self, command):
-        "execute a PFC3D command"
+        "execute an Itasca code command"
         assert type(command) == str
         self._pfc.send(10)
         self._pfc.send(command)
@@ -103,7 +103,6 @@ if __name__=='__main__':
     pfc.cmd("ball id 3 rad 1 x 12.30 y .5 z 6")
     pfc.cmd("prop dens 2500 kn 1.0e3 ks 1.0e3")
     pfc.cmd("set grav 0 0 -9.81")
-
 
     for ball in pfc.ball_list():
         print ball.x(), ball.y(), ball.z()

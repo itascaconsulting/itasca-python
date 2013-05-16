@@ -94,6 +94,49 @@ def ball_id_next
 end
 
 
+def map_ret_value
+  ;; input is the fish variable ret_value
+  ;; if this is a string, int, float return it
+  ;; if it is a pointer encode it
+
+  ;; types: 1 int, 2 float, 3 string, 4 pointer, 5 array
+
+  caseof type(ret_value)
+
+  case 1
+    map_ret_value = ret_value
+  case 2
+    map_ret_value = ret_value
+  case 3
+    map_ret_value = ret_value
+  case 4
+    if ret_value = null then
+      map_ret_value = ':null:'
+    endif
+
+    caseof pointer_type(ret_value)
+      ;; pointer types:
+      ;; 21 memory, 100 ball, 101 wall, 102 contact, 103 clump,
+      ;; 104 measuerment sphere, 0 null
+      case 21
+        oo=error('memory pointers are unsuported in python bridge')
+      case 100
+        map_ret_value = ':ball: ' + string(b_id(ret_value))
+      case 101
+        map_ret_value = ':wall: ' + string(w_id(ret_value))
+      case 102
+        map_ret_value = ':contact: ' + string(c_id(ret_value))
+      case 103
+        map_ret_value = ':clump:' + string(cl_id(ret_value))
+      case 104
+        map_ret_value = ':clump:' + string(m_id(ret_value))
+
+    endcase
+  case 5
+
+  endcase
+end
+
 def open_socket
   s = sopen(0,0)
 
@@ -133,7 +176,7 @@ def open_socket
       endif
 
     else
-      oo=error("unknown input to PFC/python bridge server")
+      oo=error('unknown input to PFC/python bridge server')
     endif
 
     oo=out('returning ' + string(data_out(1)) + ' to python')
