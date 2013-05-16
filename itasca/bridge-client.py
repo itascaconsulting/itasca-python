@@ -38,6 +38,9 @@ class pfcBridge(object):
     def ball_list(self):
         return ball_list(self)
 
+    def close(self):
+        self._pfc.send(-1)
+
 class ball_list(object):
     "iterator object for list of balls"
     def __init__(self, bridge):
@@ -109,4 +112,4 @@ if __name__=='__main__':
         print ball.x(), ball.y(), ball.z()
 
 
-    pfc._pfc.send(-1)
+    pfc.close()

@@ -1,5 +1,4 @@
 import struct
-
 from itasca import FishBinaryReader
 
 # see create-test-data.f3dat to generate this test data
