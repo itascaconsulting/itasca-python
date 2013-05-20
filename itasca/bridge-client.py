@@ -1,5 +1,7 @@
 from itasca import PFC3D_Connection
+from itasca import FishBinaryReader
 import math
+import numpy as np
 
 class pfcBridge(object):
     def __init__(self):
@@ -26,7 +28,6 @@ class pfcBridge(object):
         res = self._pfc.receive()
         return res
 
-
     def cmd(self, command):
         "execute a PFC3D command"
         assert type(command) == str
@@ -35,11 +36,57 @@ class pfcBridge(object):
         res = self._pfc.receive()
         assert res == 0
 
+    def ball_radii(self):
+        """ returns a NumPy array of the ball locations """
+        self.cmd("write_ball_radii")
+        return self.read_v1_fish()
+
+    def ball_positions(self):
+        """ returns a NumPy array of the ball locations """
+        self.cmd("write_ball_positions")
+        return self.read_v3_fish()
+
+    def ball_velocities(self):
+        """ returns a NumPy array of the ball locations """
+        self.cmd("write_ball_velocities")
+        return self.read_v3_fish()
+
+    def read_v3_fish(self, filename='bin.fish'):
+        fish_file = FishBinaryReader(filename)
+        tmp = []
+        try:
+            while True:
+                x,y,z = fish_file.read(), fish_file.read(), fish_file.read()
+                assert type(x)==float
+                assert type(y)==float
+                assert type(z)==float
+                tmp.append([x,y,z])
+        except:
+            pass
+        a = np.array(tmp)
+        return a.reshape(a.shape[0], 3)
+
+    def read_v1_fish(self, filename='bin.fish'):
+        fish_file = FishBinaryReader(filename)
+        tmp = []
+        try:
+            while True:
+                x = fish_file.read()
+                assert type(x)==float
+                tmp.append(x)
+        except:
+            pass
+        return np.array(tmp)
+
     def ball_list(self):
         return ball_list(self)
 
     def close(self):
         self._pfc.send(-1)
+
+    def quit(self):
+        self._pfc.send(-2)
+
 
 class ball_list(object):
     "iterator object for list of balls"
@@ -85,7 +132,6 @@ b_multi_type b_realmassset b_realmoiset""".split()
         return lambda : res
 
 
-
 if __name__=='__main__':
     pfc = pfcBridge()
 
@@ -111,5 +157,8 @@ if __name__=='__main__':
     for ball in pfc.ball_list():
         print ball.x(), ball.y(), ball.z()
 
+    print pfc.ball_positions()
+    print pfc.ball_velocities()
+    print pfc.ball_radii()
 
-    pfc.close()
+    pfc.quit()

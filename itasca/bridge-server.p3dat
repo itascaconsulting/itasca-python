@@ -94,6 +94,47 @@ def ball_id_next
 end
 
 
+def write_ball_positions
+  status = open('bin.fish', 1, 0) ; binary output
+  bp = ball_head
+  loop while bp # null
+    tmp(1) = b_x(bp)
+    status = write(tmp,1)
+    tmp(1) = b_y(bp)
+    status = write(tmp,1)
+    tmp(1) = b_z(bp)
+    status = write(tmp,1)
+    bp = b_next(bp)
+  end_loop
+  status = close
+end
+
+def write_ball_velocities
+  status = open('bin.fish', 1, 0) ; binary output
+  bp = ball_head
+  loop while bp # null
+    tmp(1) = b_xvel(bp)
+    status = write(tmp,1)
+    tmp(1) = b_yvel(bp)
+    status = write(tmp,1)
+    tmp(1) = b_zvel(bp)
+    status = write(tmp,1)
+    bp = b_next(bp)
+  end_loop
+  status = close
+end
+
+def write_ball_radii
+  status = open('bin.fish', 1, 0) ; binary output
+  bp = ball_head
+  loop while bp # null
+    tmp(1) = b_rad(bp)
+    status = write(tmp,1)
+    bp = b_next(bp)
+  end_loop
+  status = close
+end
+
 def open_socket
   s = sopen(0,0)
 
@@ -108,6 +149,13 @@ def open_socket
       if data_in(1)=-1 then
         oo=out('breaking out of server loop')
         exit
+      endif
+
+      if data_in(1)=-2 then
+        oo=out('exiting PFC')
+        command
+          quit
+        end_command
       endif
 
       if data_in(1)=10 then
