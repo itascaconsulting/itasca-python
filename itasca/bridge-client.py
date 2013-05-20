@@ -106,6 +106,14 @@ class ball_list(object):
                                     self._bridge)
             return retval
 
+class pfc_contact(object):
+    def __init__(self, idn, bridge):
+        self.id = idn
+
+    def __repr__(self):
+        return "<pfc contact id=%i>" % (self.id)
+
+
 class pfc_ball(object):
     methods = """b_clist b_ctype b_xfix b_yfix b_zfix b_vfix
 b_rxfix b_ryfix b_rzfix b_rfix b_x b_y b_z b_vpos b_ux b_uy b_uz b_vu
@@ -123,13 +131,28 @@ b_multi_type b_realmassset b_realmoiset""".split()
         self.id = idn
         self._bridge = bridge
 
+    def __repr__(self):
+        return "<pfc ball id=%i>" % (self.id)
+
     def __getattr__(self, item):
         fname = "b_" + item
         if not fname in pfc_ball.methods:
             raise AttributeError("no pfc_ball fish intrinsic " + fname)
-        fish_string = "%s(find_ball(%i))" % (fname, self.id)
-        res = self._bridge.eval(fish_string)
-        return lambda : res
+
+        # shoud check for rw here?
+        def handle_fishcall(arg=None):
+            if arg==None:
+                fish_string = "%s(find_ball(%i))" % (fname, self.id)
+                res = self._bridge.eval(fish_string)
+                return res
+            else:
+                fish_string = "%s(find_ball(%i))=%s" % (fname,
+                                                        self.id,
+                                                        str(arg))
+                res = self._bridge.eval(fish_string)
+                return arg
+
+        return handle_fishcall
 
 
 if __name__=='__main__':
@@ -156,9 +179,10 @@ if __name__=='__main__':
 
     for ball in pfc.ball_list():
         print ball.x(), ball.y(), ball.z()
+        ball.rad(0.123)
 
     print pfc.ball_positions()
     print pfc.ball_velocities()
     print pfc.ball_radii()
 
-    pfc.quit()
+    #pfc.quit()
