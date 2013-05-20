@@ -57,36 +57,47 @@ class ItascaFishSocketServer(object):
         else:
             raise Exception("unknown type in send_data")
 
+    def read_type(self, type_string):
+        byte_count = struct.calcsize(type_string)
+        bytes_read = 0
+        data = ''
+        while bytes_read < byte_count:
+            data_in = self.conn.recv(byte_count - bytes_read)
+            data += data_in
+            bytes_read += len(data)
+        assert len(data)==byte_count, "bad packet data"
+        return data
+
     def read_data(self):
-        raw_data = self.conn.recv(struct.calcsize("i"))
+        raw_data = self.read_type("i")
         type_code, = struct.unpack("i", raw_data)
         if type_code == 1:     # int
-            raw_data = self.conn.recv(struct.calcsize("i"))
+            raw_data = self.read_type("i")
             value, = struct.unpack("i", raw_data)
             return value
         elif type_code == 2:   # float
-            raw_data = self.conn.recv(struct.calcsize("d"))
+            raw_data = self.read_type("d")
             value, = struct.unpack("d", raw_data)
             return value
         elif type_code == 3:   # string
-            length_data = self.conn.recv(struct.calcsize("i"))
+            length_data = self.read_type("i")
             length, = struct.unpack("i", length_data)
             buffer_length = (4*(1+(length-1)/4))
             format_string = "%is" % buffer_length
-            data = self.conn.recv(struct.calcsize(format_string))
+            data = self.read_type(format_string)
             return data [:length]
         elif type_code == 5:   # V2
-            raw_data = self.conn.recv(struct.calcsize("dd"))
+            raw_data = self.read_type("dd")
             value0, value1 = struct.unpack("dd", raw_data)
             return [value0, value1]
         elif type_code == 6:   # V3
-            raw_data = self.conn.recv(struct.calcsize("ddd"))
+            raw_data = self.read_type("ddd")
             value0, value1, value3 = struct.unpack("ddd", raw_data)
             return [value0, value1, value3]
         assert False, "Data read type error"
 
     def get_handshake(self):
-        raw_data = self.conn.recv(struct.calcsize("i"))
+        raw_data = self.read_type("i")
         value, = struct.unpack("i", raw_data)
         print "handshake got: ", value
         return value
