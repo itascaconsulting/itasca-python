@@ -39,53 +39,37 @@ class pfcBridge(object):
     def ball_radii(self):
         """ returns a NumPy array of the ball locations """
         self.cmd("write_ball_radii")
-        return self.read_v1_fish()
+        return self._read_v1_fish()
 
     def ball_positions(self):
         """ returns a NumPy array of the ball locations """
         self.cmd("write_ball_positions")
-        return self.read_v3_fish()
+        return self._read_v3_fish()
 
     def ball_velocities(self):
         """ returns a NumPy array of the ball locations """
         self.cmd("write_ball_velocities")
-        return self.read_v3_fish()
-
-    def read_v3_fish(self, filename='bin.fish'):
-        fish_file = FishBinaryReader(filename)
-        tmp = []
-        try:
-            while True:
-                x,y,z = fish_file.read(), fish_file.read(), fish_file.read()
-                assert type(x)==float
-                assert type(y)==float
-                assert type(z)==float
-                tmp.append([x,y,z])
-        except:
-            pass
-        a = np.array(tmp)
-        return a.reshape(a.shape[0], 3)
-
-    def read_v1_fish(self, filename='bin.fish'):
-        fish_file = FishBinaryReader(filename)
-        tmp = []
-        try:
-            while True:
-                x = fish_file.read()
-                assert type(x)==float
-                tmp.append(x)
-        except:
-            pass
-        return np.array(tmp)
+        return self._read_v3_fish()
 
     def ball_list(self):
         return ball_list(self)
 
     def close(self):
+        """ Return control to PFC """
         self._pfc.send(-1)
 
     def quit(self):
+        """ Close PFC """
         self._pfc.send(-2)
+
+    def _read_v3_fish(self, filename='bin.fish'):
+        fish_file = FishBinaryReader(filename)
+        a = np.array([x for x in fish_file])
+        return a.reshape(a.shape[0]/3, 3)
+
+    def _read_v1_fish(self, filename='bin.fish'):
+        fish_file = FishBinaryReader(filename)
+        return np.array([x for x in fish_file])
 
 
 class ball_list(object):
@@ -185,4 +169,4 @@ if __name__=='__main__':
     print pfc.ball_velocities()
     print pfc.ball_radii()
 
-    #pfc.quit()
+    pfc.quit()

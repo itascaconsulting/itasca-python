@@ -159,12 +159,20 @@ class PFC3D_Connection(ItascaSoftwareConnection):
 
 
 class FishBinaryReader(object):
-    """
-    Read structured FISH binary files.
+    """Read structured FISH binary files.
 
     Call the constructor with the structured FISH filename and call
-    read() to read individual values. Return values are converted to
-    python types. Supports int, float, string, bool, v2 and v3.
+    read() to read individual values. This class also supports
+    iteration. Return values are converted to python types. Supports
+    int, float, string, bool, v2 and v3.
+
+    >>> fish_file = FishBinaryReader('my_fish_data.fish')
+    >>> for val in fish_file:
+    ...    print val
+    42
+    "this is a string"
+    [1.0,2.0,3.0]
+
     """
     def __init__(self, filename):
         self.file = open(filename, "rb")
@@ -182,6 +190,8 @@ class FishBinaryReader(object):
         return value
 
     def read(self):
+        """read and return a value (converted to a python type) from the
+        .fish binary file."""
         type_code = self._read_int()
 
         if type_code == 1:  # int
@@ -203,3 +213,14 @@ class FishBinaryReader(object):
         if type_code == 6:  # v3
             return [self._read_double(), self._read_double(),
                     self._read_double()]
+
+    def __iter__(self):
+        self.file.seek(0)  # return to the begining of the file
+        self._read_int()   # pop the magic number off
+        return self
+
+    def next(self):
+        try:
+            return self.read()
+        except:
+            raise StopIteration
