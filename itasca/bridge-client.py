@@ -26,7 +26,27 @@ class pfcBridge(object):
         self._pfc.send(code)
         self._pfc.send(fish_string)
         res = self._pfc.receive()
-        return res
+        return self.map_return_type(res)
+
+    def map_return_type(self, val):
+        if not type(val)==str: return val
+        if not val.startswith(':'): return val
+        if val==":null:": return None
+
+        flag, idn = val.split()
+        if flag == ':ball:':
+            return pfc_ball(int(idn), self)
+        elif flag == ':wall:':
+            return pfc_wall(int(idn), self)
+        elif flag == ':contact:':
+            return pfc_contact(self)
+        elif flag == ':clump:':
+            return pfc_clump(int(idn), self)
+        elif flag == ':meas:':
+            return pfc_meas(int(idn), self)
+        else:
+            raise "unknown type in bridge communication"
+
 
     def cmd(self, command):
         "execute a PFC3D command"
@@ -74,21 +94,14 @@ class pfcBridge(object):
         """
         intercept method calls and try them as fish intrinsics
         """
-        print item
         # shoud check for rw here?
         def handle_fishcall(*args):
-            import pdb; pdb.set_trace()
-            print args
             if len(args)==0:
                 fish_string = "%s"  % (item)
-                print fish_string
-                res = self.eval(fish_string)
-                return res
+                return self.eval(fish_string)
             else:
                 fish_string = "%s(%s)" % (item, ",".join(map(str, args)))
-                print fish_string
-                res = self.eval(fish_string)
-                return res
+                return self.eval(fish_string)
 
         return handle_fishcall
 
@@ -111,11 +124,13 @@ class ball_list(object):
                                     self._bridge)
             return retval
 
+
 class pfc_contact(object):
     def __init__(self, bridge):
         self.find = 'current_contact'
     def __repr__(self):
         return "<pfc contact>"
+
 
 class pfc_wall(object):
     def __init__(self, idn, bridge):
@@ -124,12 +139,14 @@ class pfc_wall(object):
     def __repr__(self):
         return "<pfc wall id=%i>" % (self.id)
 
+
 class pfc_clump(object):
     def __init__(self, idn, bridge):
         self.id = idn
         self.find = 'find_clump(%i)' % (self.idn)
     def __repr__(self):
         return "<pfc clump id=%i>" % (self.id)
+
 
 class pfc_meas(object):
     def __init__(self, idn, bridge):
@@ -140,7 +157,7 @@ class pfc_meas(object):
 
 
 class pfc_ball(object):
-    methods = """b_clist b_ctype b_xfix b_yfix b_zfix b_vfix
+    methods = """b_next b_clist b_ctype b_xfix b_yfix b_zfix b_vfix
 b_rxfix b_ryfix b_rzfix b_rfix b_x b_y b_z b_vpos b_ux b_uy b_uz b_vu
 b_xvel b_yvel b_zvel b_vvel b_rxvel b_ryvel b_rzvel b_rvel b_xfob
 b_yfob b_zfob b_vfob b_xfap b_yfap b_zfap b_vfap b_xmom b_ymom b_zmom
@@ -206,12 +223,12 @@ if __name__=='__main__':
         print ball.x(), ball.y(), ball.z()
         ball.rad(0.123)
 
-    print pfc.ball_positions()
-    print pfc.ball_velocities()
-    print pfc.ball_radii()
+    #print pfc.ball_positions()
+    #print pfc.ball_velocities()
+    #print pfc.ball_radii()
 
     print pfc.time()
     print pfc.ball_head()
     print pfc.ball_near3(0,0,0)
 
-    pfc.quit()
+    #pfc.quit()

@@ -166,7 +166,8 @@ def map_ret_val
       case 101
         map_ret_value = ':wall: ' + string(w_id(ret_value))
       case 102
-        map_ret_value = ':contact:'
+        current_contact = ret_value    ; hack because contacts have no id
+        map_ret_value = ':contact: 0'
       case 103
         map_ret_value = ':clump: ' + string(cl_id(ret_value))
       case 104
