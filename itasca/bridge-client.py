@@ -1,6 +1,5 @@
 from itasca import PFC3D_Connection
 from itasca import FishBinaryReader
-import math
 import numpy as np
 
 class pfcBridge(object):
@@ -8,6 +7,9 @@ class pfcBridge(object):
         self._pfc = PFC3D_Connection()
         self._pfc.start("bridge-server.p3dat")
         self._pfc.connect()
+
+    def __del__(self):
+        self.quit()
 
     def eval(self, fish_string):
         """Evaluate a FISH expression and return the result
@@ -124,39 +126,101 @@ class ball_list(object):
                                     self._bridge)
             return retval
 
+class pfc_object(object):
+    """ Catch uncought method calls and try them as FISH intrinsics.  """
+    def __getattr__(self, item):
+        fname = self.prefix + item
+        if not fname in self.methods:
+            raise AttributeError("no fish intrinsic " + fname)
 
-class pfc_contact(object):
-    def __init__(self, bridge):
-        self.find = 'current_contact'
+        # shoud check for rw here?
+        def handle_fishcall(arg=None):
+            if arg==None:
+                fish_string = "%s(%s)" % (fname, self.find)
+                return self._bridge.eval(fish_string)
+            else:
+                fish_string = "%s(%s)=%s" % (fname,
+                                             self.find,
+                                             str(arg))
+                res = self._bridge.eval(fish_string)
+                return arg
+        return handle_fishcall
+
+
+class pfc_contact(pfc_object):
+    methods = """c_next c_ball1 c_ball2 c_b1clist c_b2clist c_gobj1 c_gobj2 c_go1clist
+c_go2clist c_wseg c_type c_bflag c_broken c_x c_y c_z c_vpos c_nforce
+c_xsforce c_ysforce c_zsforce c_sforce c_kn c_ks c_hn c_hs c_fric
+c_nstrength c_sstrength c_ex c_pb c_xun c_yun c_zun c_vun c_jset
+c_slipwork c_inhibit c_prop c_model c_extra c_vsforce c_dampn c_damps
+c_thactive c_thlen c_thpipe c_thpow c_thres c_active c_installpb
+c_ondisk c_ondisk c_nvforce c_xsvforce c_ysvforce c_zsvforce c_svforce
+c_vsvforce c_knset c_ksset c_fricset c_dampnt c_ontri c_mom c_tmom
+c_vbmom""".split()
+
+    def __init__(self, idn, bridge):
+        self.prefix = "c_"
+        self.id = 0
+        self._bridge = bridge
+        self.methods = pfc_contact.methods
+        self.find = 'find_contact(current_contact)'
     def __repr__(self):
         return "<pfc contact>"
 
 
-class pfc_wall(object):
+class pfc_wall(pfc_object):
+    methods = """w_next w_clist w_id w_x w_y w_z w_pos w_ux w_uy w_uz w_vu w_xvel
+w_yvel w_zvel w_vvel w_xfob w_yfob w_zfob w_vfob w_kn w_ks w_fric w_ex
+del_wall w_color w_flist w_wlist w_extra w_fix w_delete w_rxvel
+w_ryvel w_rzvel w_rvel w_vrvel w_xmom w_ymom w_zmom w_mom w_vmom
+w_type w_radvel w_radfob w_radend1 w_radend2 w_posend1 w_posend2 w_rad""".split()
     def __init__(self, idn, bridge):
+        self.prefix = "w_"
         self.id = idn
-        self.find = 'find_wall(%i)' % (self.idn)
+        self._bridge = bridge
+        self.methods = pfc_wall.methods
+        self.find = 'find_wall(%i)' % (self.id)
     def __repr__(self):
         return "<pfc wall id=%i>" % (self.id)
 
 
-class pfc_clump(object):
+class pfc_clump(pfc_object):
+    methods = """cl_add cl_extra cl_id cl_list cl_next cl_rel cl_scale cl_color
+cl_damp cl_mass cl_realmass cl_moi cl_vmoi cl_vol cl_volgiven cl_vfix
+cl_xfix cl_yfix cl_zfix cl_rfix cl_vrfix cl_rxfix cl_ryfix cl_rzfix
+cl_vfap cl_xfap cl_yfap cl_zfap cl_map cl_vmap cl_xmap cl_ymap cl_zmap
+cl_vpos cl_x cl_y cl_z cl_vvel cl_xvel cl_yvel cl_zvel cl_rvel
+cl_vrvel cl_rxvel cl_ryvel cl_rzvel cl_vfob cl_xfob cl_yfob cl_zfob
+cl_mom cl_vmom cl_xmom cl_ymom cl_zmom cl_stress cl_vdisp cl_xdisp
+cl_ydisp cl_zdisp""".split()
+
     def __init__(self, idn, bridge):
-        self.id = idn
-        self.find = 'find_clump(%i)' % (self.idn)
+        self.prefix = "cl_"
+        self.id = id
+        self._bridge = bridge
+        self.methods = pfc_clump.methods
+        self.find = 'find_clump(%i)' % (self.id)
     def __repr__(self):
         return "<pfc clump id=%i>" % (self.id)
 
 
-class pfc_meas(object):
-    def __init__(self, idn, bridge):
+class pfc_meas(pfc_object):
+    methods = """m_coord m_poros m_sfrac m_s11 m_s12 m_s21 m_s22 m_s13 m_s31
+m_s23 m_s32 m_s33 m_ed11 m_ed12 m_ed21 m_ed22 m_ed13 m_ed31 m_ed23
+m_ed32 m_ed33 m_x m_y m_z m_vpos m_rad m_id m_next m_tc11 m_tc12
+m_tc21 m_tc22 m_tc13 m_tc31 m_tc23 m_tc32 m_tc33""".split()
+
+    def __init__(self, idn):
+        self.prefix = "meas_"
         self.id = idn
-        self.find = 'find_meas(%i)' % (self.idn)
+        self._bridge = bridge
+        self.methods = pfc_meas.methods
+        self.find = 'find_meas(%i)' % (self.id)
     def __repr__(self):
         return "<pfc measurement sphere id=%i>" % (self.id)
 
 
-class pfc_ball(object):
+class pfc_ball(pfc_object):
     methods = """b_next b_clist b_ctype b_xfix b_yfix b_zfix b_vfix
 b_rxfix b_ryfix b_rzfix b_rfix b_x b_y b_z b_vpos b_ux b_uy b_uz b_vu
 b_xvel b_yvel b_zvel b_vvel b_rxvel b_ryvel b_rzvel b_rvel b_xfob
@@ -170,32 +234,13 @@ b_thdeltemp b_perflag b_perBall b_xffap b_yffap b_zffap b_vffap
 b_multi_type b_realmassset b_realmoiset""".split()
 
     def __init__(self, idn, bridge):
+        self.prefix = "b_"
         self.id = idn
         self._bridge = bridge
-
+        self.methods = pfc_ball.methods
+        self.find = "find_ball(%i)" % (self.id)
     def __repr__(self):
         return "<pfc ball id=%i>" % (self.id)
-
-    def __getattr__(self, item):
-        fname = "b_" + item
-        if not fname in pfc_ball.methods:
-            raise AttributeError("no pfc_ball fish intrinsic " + fname)
-
-        # shoud check for rw here?
-        def handle_fishcall(arg=None):
-            if arg==None:
-                fish_string = "%s(find_ball(%i))" % (fname, self.id)
-                res = self._bridge.eval(fish_string)
-                return res
-            else:
-                fish_string = "%s(find_ball(%i))=%s" % (fname,
-                                                        self.id,
-                                                        str(arg))
-                res = self._bridge.eval(fish_string)
-                return arg
-
-        return handle_fishcall
-
 
 if __name__=='__main__':
     pfc = pfcBridge()
@@ -204,7 +249,7 @@ if __name__=='__main__':
     assert res == 2
 
     res = pfc.eval("cos(1+2.2)")
-    assert res == math.cos(1+2.2)
+    assert res == np.cos(1+2.2)
 
     res = pfc.eval("a=123.456")
     assert res == 0
@@ -217,18 +262,32 @@ if __name__=='__main__':
     pfc.cmd("ball id 3 rad 1 x 12.30 y .5 z 6")
     pfc.cmd("prop dens 2500 kn 1.0e3 ks 1.0e3")
     pfc.cmd("set grav 0 0 -9.81")
-
-
-    for ball in pfc.ball_list():
-        print ball.x(), ball.y(), ball.z()
-        ball.rad(0.123)
-
-    #print pfc.ball_positions()
-    #print pfc.ball_velocities()
-    #print pfc.ball_radii()
+    pfc.cmd("measure id 1 x 0.122 y 0.4 z -0.3 rad 0.0225")
+    pfc.cmd("wall face 0 0 0  1 1 1  2 0 0 fric 0.25")
 
     print pfc.time()
     print pfc.ball_head()
     print pfc.ball_near3(0,0,0)
+
+    b = pfc.ball_head()
+    b.rad(99.9)
+    assert b.rad() == 99.9
+    b = b.next()
+    print b.rad()
+
+    w = pfc.wall_head()
+    print w, w.fric()
+    w.fric(0.112)
+    assert w.fric() == 0.112
+
+    # ball iterator
+    for ball in pfc.ball_list():
+        print ball.x(), ball.y(), ball.z()
+        ball.rad(0.123)
+
+    # array interface
+    print pfc.ball_positions()
+    print pfc.ball_velocities()
+    #print pfc.ball_radii()
 
     #pfc.quit()
