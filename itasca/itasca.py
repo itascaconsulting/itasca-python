@@ -13,6 +13,7 @@ FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 import struct
 import socket
 import subprocess
+import numpy as np
 
 class ItascaFishSocketServer(object):
     "handles the low level details of the socket communication"
@@ -224,3 +225,12 @@ class FishBinaryReader(object):
             return self.read()
         except:
             raise StopIteration
+
+    def aslist(self):
+        """ Return fish file contents as a Python list """
+        return [x for x in self]
+
+    def asarray(self):
+        """ Return fish file contents as a numpy array.
+        Types must be homogeneous."""
+        return np.array(self.aslist())

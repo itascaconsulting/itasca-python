@@ -37,7 +37,7 @@ class pfcBridge(object):
         assert res == 0
 
     def ball_radii(self):
-        """ returns a NumPy array of the ball locations """
+        """ returns a NumPy array of the ball radii """
         self.cmd("write_ball_radii")
         return self._read_v1_fish()
 
@@ -47,7 +47,7 @@ class pfcBridge(object):
         return self._read_v3_fish()
 
     def ball_velocities(self):
-        """ returns a NumPy array of the ball locations """
+        """ returns a NumPy array of the ball velocities """
         self.cmd("write_ball_velocities")
         return self._read_v3_fish()
 
@@ -63,13 +63,34 @@ class pfcBridge(object):
         self._pfc.send(-2)
 
     def _read_v3_fish(self, filename='bin.fish'):
-        fish_file = FishBinaryReader(filename)
-        a = np.array([x for x in fish_file])
+        a = FishBinaryReader(filename).asarray()
+        assert a.shape[0] % 3 == 0, "bad fish array shape"
         return a.reshape(a.shape[0]/3, 3)
 
     def _read_v1_fish(self, filename='bin.fish'):
-        fish_file = FishBinaryReader(filename)
-        return np.array([x for x in fish_file])
+        return FishBinaryReader(filename).asarray()
+
+    def __getattr__(self, item):
+        """
+        intercept method calls and try them as fish intrinsics
+        """
+        print item
+        # shoud check for rw here?
+        def handle_fishcall(*args):
+            import pdb; pdb.set_trace()
+            print args
+            if len(args)==0:
+                fish_string = "%s"  % (item)
+                print fish_string
+                res = self.eval(fish_string)
+                return res
+            else:
+                fish_string = "%s(%s)" % (item, ",".join(map(str, args)))
+                print fish_string
+                res = self.eval(fish_string)
+                return res
+
+        return handle_fishcall
 
 
 class ball_list(object):
@@ -91,11 +112,31 @@ class ball_list(object):
             return retval
 
 class pfc_contact(object):
+    def __init__(self, bridge):
+        self.find = 'current_contact'
+    def __repr__(self):
+        return "<pfc contact>"
+
+class pfc_wall(object):
     def __init__(self, idn, bridge):
         self.id = idn
-
+        self.find = 'find_wall(%i)' % (self.idn)
     def __repr__(self):
-        return "<pfc contact id=%i>" % (self.id)
+        return "<pfc wall id=%i>" % (self.id)
+
+class pfc_clump(object):
+    def __init__(self, idn, bridge):
+        self.id = idn
+        self.find = 'find_clump(%i)' % (self.idn)
+    def __repr__(self):
+        return "<pfc clump id=%i>" % (self.id)
+
+class pfc_meas(object):
+    def __init__(self, idn, bridge):
+        self.id = idn
+        self.find = 'find_meas(%i)' % (self.idn)
+    def __repr__(self):
+        return "<pfc measurement sphere id=%i>" % (self.id)
 
 
 class pfc_ball(object):
@@ -168,5 +209,9 @@ if __name__=='__main__':
     print pfc.ball_positions()
     print pfc.ball_velocities()
     print pfc.ball_radii()
+
+    print pfc.time()
+    print pfc.ball_head()
+    print pfc.ball_near3(0,0,0)
 
     pfc.quit()
