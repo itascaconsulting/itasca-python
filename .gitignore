@@ -2,3 +2,9 @@
 build/
 dist/
 itasca.egg-info/
+bin.fish
+errorlog.dmp
+errorlog.txt
+pp_temp.fis
+pp_tempfile.dat
+testdata.fish
