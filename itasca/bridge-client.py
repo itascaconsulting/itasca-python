@@ -210,8 +210,8 @@ m_s23 m_s32 m_s33 m_ed11 m_ed12 m_ed21 m_ed22 m_ed13 m_ed31 m_ed23
 m_ed32 m_ed33 m_x m_y m_z m_vpos m_rad m_id m_next m_tc11 m_tc12
 m_tc21 m_tc22 m_tc13 m_tc31 m_tc23 m_tc32 m_tc33""".split()
 
-    def __init__(self, idn):
-        self.prefix = "meas_"
+    def __init__(self, idn, bridge):
+        self.prefix = "m_"
         self.id = idn
         self._bridge = bridge
         self.methods = pfc_meas.methods
@@ -279,6 +279,11 @@ if __name__=='__main__':
     print w, w.fric()
     w.fric(0.112)
     assert w.fric() == 0.112
+
+    meas = pfc.circ_head()
+    print meas, meas.x()
+    meas.x(12.55)
+    assert meas.x() == 12.55
 
     # ball iterator
     for ball in pfc.ball_list():

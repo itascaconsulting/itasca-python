@@ -19,46 +19,105 @@ $ python setup.py install
 ## Demo high-level interface to PFC
 
 ```python
-from itasca import pfcBridge
-pfc = pfcBridge()
+>>> from itasca import pfcBridge
+>>> pfc = pfcBridge()  # launches a new PFC instance
 ```
 
 Evaluate fish expressions:
 
 ```python
-res = pfc.eval("1+1")
-assert res == 2
+>>> res = pfc.eval("1+1")
+>>> assert res == 2
 
-res = pfc.eval("cos(1+2.2)")
-assert res == math.cos(1+2.2)
+>>> res = pfc.eval("cos(1+2.2)")
+>>> assert res == math.cos(1+2.2)
 
-res = pfc.eval("a=123.456")
-assert res == 0
+>>> res = pfc.eval("a=123.456")
+>>> assert res == 0
 
-res = pfc.eval("a")
-assert res == 123.456
+>>> res = pfc.eval("a")
+>>> assert res == 123.456
 ```
 
 Execute PFC commands:
 
 ```python
-pfc.cmd("ball id 1 rad 1 x 12.30 y .2 z 0")
-pfc.cmd("ball id 2 rad 1 x 12.30 y .4 z 3")
-pfc.cmd("ball id 3 rad 1 x 12.30 y .5 z 6")
-pfc.cmd("prop dens 2500 kn 1.0e3 ks 1.0e3")
-pfc.cmd("set grav 0 0 -9.81")
+>>> pfc.cmd("ball id 1 rad 1 x 12.30 y .2 z 0")
+>>> pfc.cmd("ball id 2 rad 1 x 12.30 y .4 z 3")
+>>> pfc.cmd("ball id 3 rad 1 x 12.30 y .5 z 6")
+>>> pfc.cmd("prop dens 2500 kn 1.0e3 ks 1.0e3")
+>>> pfc.cmd("set grav 0 0 -9.81")
+>>> pfc.cmd("measure id 1 x 0.122 y 0.4 z -0.3 rad 0.0225")
+>>> pfc.cmd("wall face 0 0 0  1 1 1  2 0 0 fric 0.25")
 ```
 
 Use a *Pythonic* interface to PFC model objects:
 
 ```python
-for ball in pfc.ball_list():
-    print ball.x(), ball.y(), ball.z()
+>>> for ball in pfc.ball_list():
+>>>     print ball.x(), ball.y(), ball.z()
+12.3 0.5 6.0
+12.3 0.4 3.0
+12.3 0.2 0.0
+
+>>> pfc.time()
+0.0
+
+>>> pfc.ball_head()
+<pfc ball id=3>
+
+>>> pfc.ball_near3(0,0,0)
+<pfc ball id=1>
+```
+
+Get and set PFC model properties pragmatically
+
+```python
+>>> b = pfc.ball_head()
+>>> b.rad(99.9)
+>>> assert b.rad() == 99.9
+>>> b = b.next()
+>>> print b.rad()
+1.0
+
+>>> w = pfc.wall_head()
+>>> print w
+<pfc wall id=1>
+>>> print w.fric()
+0.25
+>>> w.fric(0.112)
+>>> assert w.fric() == 0.112
+
+>>> meas = pfc.circ_head()
+>>> print meas
+<pfc measurement sphere id=1>
+>>> print meas.x()
+0.122
+>>> meas.x(12.55)
+>>> assert meas.x() == 12.55
+```
+
+NumPy array interface
+
+```python
+>>> pfc.ball_positions()
+array([[ 12.3   0.5   6. ]
+       [ 12.3   0.4   3. ]
+       [ 12.3   0.2   0. ]])
+>>> pfc.cmd("cycle 100")
+>>> pfc.ball_velocities()
+array([[ 0.      ,  0.      , -2.190092],
+       [ 0.      ,  0.      , -2.190092],
+       [ 0.      ,  0.      , -2.190092]])
 ```
 
 Close connection:
 ```python
-pfc.close()
+>>> pfc.quit()  # quits PFC
+```
+or
+```python
+>>> pfc.close()  # to return control to PFC
 ```
 ## Low level socket interface to all Itasca codes
 
@@ -116,13 +175,18 @@ end
 Read it in Python
 
 ```python
-from itasca import FishBinaryReader
+>>> from itasca import FishBinaryReader
 
-fish_file = FishBinaryReader("testdata.fish")
+>>> fish_file = FishBinaryReader("testdata.fish")
 
-assert fish_file.read() == 1
-assert fish_file.read() == 99.987
-assert fish_file.read() == "James"
-assert fish_file.read() == [99.5, 89.3]
-assert fish_file.read() == [7.0, 8.0, 9.0]
+>>> assert fish_file.read() == 1
+>>> assert fish_file.read() == 99.987
+>>> assert fish_file.read() == "James"
+>>> assert fish_file.read() == [99.5, 89.3]
+>>> assert fish_file.read() == [7.0, 8.0, 9.0]
+
+>>> FishBinaryReader("testdata2.fish").aslist()  # convert data to list
+[1, 2, 3, 4, 5, 6, 7]
+>>> FishBinaryReader("testdata2.fish").asarray() # conver to NumPy array
+array([[1, 2, 3, 4, 5, 6, 7])
 ```
