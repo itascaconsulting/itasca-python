@@ -24,3 +24,4 @@ def get_version(version=None):
 
 from itasca import FLAC3D_Connection, PFC3D_Connection, FishBinaryReader
 from mock_ccfd_server import MockCcfdServer
+from bridge_client import pfcBridge
