@@ -70,7 +70,7 @@ Use a *Pythonic* interface to PFC model objects:
 <pfc ball id=1>
 ```
 
-Get and set PFC model properties pragmatically
+Get and set PFC model properties programmaticlly
 
 ```python
 >>> b = pfc.ball_head()
@@ -187,6 +187,6 @@ Read it in Python
 
 >>> FishBinaryReader("testdata2.fish").aslist()  # convert data to list
 [1, 2, 3, 4, 5, 6, 7]
->>> FishBinaryReader("testdata2.fish").asarray() # conver to NumPy array
+>>> FishBinaryReader("testdata2.fish").asarray() # convert to NumPy array
 array([[1, 2, 3, 4, 5, 6, 7])
 ```
