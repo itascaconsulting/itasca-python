@@ -10,10 +10,9 @@
 ;; exits the read/write loop.
 
 
-
 def open_socket
   array data(1)
-  s = sopen(0,1,3333)
+  s = sopen(0,1)
 
   loop i(0, 1000)
     oo = out('reading')

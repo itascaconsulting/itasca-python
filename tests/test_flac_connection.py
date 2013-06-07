@@ -1,7 +1,8 @@
 from itasca import FLAC_Connection
 
 flac = FLAC_Connection()
-flac.start("flac_socket_test.dat")
+#flac.start("test flac_socket_test.dat")
+flac.process = True
 flac.connect()
 
 flac.send(99.9)
