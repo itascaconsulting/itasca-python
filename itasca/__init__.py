@@ -22,6 +22,10 @@ def get_version(version=None):
 
     return main + sub
 
-from itasca import FLAC3D_Connection, PFC3D_Connection, FishBinaryReader
+from itasca import FLAC3D_Connection
+from itasca import PFC3D_Connection
+from itasca import FishBinaryReader
+from itasca import FLAC_Connection
+
 from mock_ccfd_server import MockCcfdServer
 from bridge_client import pfcBridge

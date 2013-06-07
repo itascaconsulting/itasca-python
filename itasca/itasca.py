@@ -158,6 +158,9 @@ class PFC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
         return "C:\\Program Files\\Itasca\\PFC3D400\\exe64\\evpfc3d_64.exe"
 
+class FLAC_Connection(ItascaSoftwareConnection):
+    def execuitable_name(self):
+        return "c:\\Program Files (x86)\\Itasca\\FLAC700\\Exe32\\flac700.exe"
 
 class FishBinaryReader(object):
     """Read structured FISH binary files.

@@ -1,7 +1,7 @@
 from itasca import FLAC3D_Connection
 
 flac3d = FLAC3D_Connection()
-flac3d.start("flac_socket_test.f3dat")
+flac3d.start("flac3d_socket_test.f3dat")
 flac3d.connect()
 
 flac3d.send(99.9)
