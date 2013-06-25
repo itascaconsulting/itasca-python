@@ -17,8 +17,9 @@ import numpy as np
 
 class ItascaFishSocketServer(object):
     "handles the low level details of the socket communication"
-    def __init__(self, port):
-        self.port = port
+    def __init__(self, fish_socket_id=0):
+        assert type(fish_socket_id) is int and 0 <= fish_socket_id < 6
+        self.port = 3333 + fish_socket_id
 
     def start(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,8 +114,8 @@ class ItascaSoftwareConnection(object):
     program. This class spawns a new instance of the Itasca software
     and initializes the socket communication.
     """
-    def __init__(self):
-        self.server = ItascaFishSocketServer(3333)
+    def __init__(self, fish_socket_id=0):
+        self.server = ItascaFishSocketServer(fish_socket_id)
         self.iteration = 0
         self.global_time = 0
         self.fishcode = 178278912
@@ -152,15 +153,26 @@ class ItascaSoftwareConnection(object):
 
 class FLAC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
-        return "C:\\Program Files\\Itasca\\Flac3d400\\exe64\\flac3d400_gui_64.exe"
+        return "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d500_gui_64.exe"
 
 class PFC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
         return "C:\\Program Files\\Itasca\\PFC3D400\\exe64\\evpfc3d_64.exe"
 
 class FLAC_Connection(ItascaSoftwareConnection):
-    def execuitable_name(self):
-        return "c:\\Program Files (x86)\\Itasca\\FLAC700\\Exe32\\flac700.exe"
+    def start(self, _=None):
+        raise NotImplemented("FLAC must be started manually")
+    def connect(self):
+        self.process=True
+        ItascaSoftwareConnection.connect(self)
+
+class UDEC_Connection(ItascaSoftwareConnection):
+    def start(self, _=None):
+        raise NotImplemented("UDEC must be started manually")
+    def connect(self):
+        self.process=True
+        ItascaSoftwareConnection.connect(self)
+
 
 class FishBinaryReader(object):
     """Read structured FISH binary files.

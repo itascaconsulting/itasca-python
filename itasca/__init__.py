@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-VERSION = (0, 0, 1, 'alpha', 1)
+VERSION = (0, 0, 1, 'alpha', 2)
 
 def get_version(version=None):
     """
@@ -26,6 +26,7 @@ from itasca import FLAC3D_Connection
 from itasca import PFC3D_Connection
 from itasca import FishBinaryReader
 from itasca import FLAC_Connection
+from itasca import UDEC_Connection
 
 from mock_ccfd_server import MockCcfdServer
 from bridge_client import pfcBridge

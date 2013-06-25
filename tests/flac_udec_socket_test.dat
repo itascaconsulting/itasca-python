@@ -1,0 +1,45 @@
+;; This is the FLAC or UDEC side of the Python coupling example.
+
+;; This example demonstrates low level reading and writing of fish
+;; parameters (int, float or string) across a socket.
+
+;; To run this example:
+
+;; (i) The python program test_udec_connection.py or
+;; test_flac3d_connection.py should be run first to start the socket
+;; server that UDEC or FLAC will connect to.
+
+;; (ii) FLAC (or UDEC) must be started manually and this file needs to be
+;; called.
+
+;; The open_socket FISH function opens a connection to the
+;; Python program. FLAC then waits for the Python program to write a
+;; FISH parameter. 1 is added to the value and it is sent back to the
+;; Python program. When FLAC receives a value of -1 from Python it
+;; exits the read/write loop.
+
+new
+
+def open_socket
+  array data(1)
+  s = sopen(0,0)
+  loop i(0, 1000)
+    oo = sread(data, 1, 0)
+    oo = out('got ' + string(data(1)) + ' from python server')
+    if type(data(1)) = 1 then
+      if data(1)=-1 then
+        oo=out('breaking out of read/write loop')
+	exit
+      endif
+      data(1) = data(1) + 1
+    endif
+    oo=swrite(data, 1, 0)
+  end_loop
+end
+open_socket
+
+def close_socket
+  oo=sclose(0)
+  oo=out('closed socket connection')
+end
+close_socket
