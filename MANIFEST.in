@@ -1,2 +1,7 @@
 recursive-include itasca *.py
 recursive-include tests *.py
+tests/bin.fish
+tests/gent.f3prj
+recursive-include tests *.f3dat
+recursive-include tests *.dat
+recursive-include tests *.p3dat
