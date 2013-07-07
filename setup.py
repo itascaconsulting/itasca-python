@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: 2',
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: BSD License",
-        "Topic :: Scientific/Engineering",
+        'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',
         "Intended Audience :: Science/Research"
     ],
     entry_points = { }
