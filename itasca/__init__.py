@@ -30,3 +30,4 @@ from itasca import UDEC_Connection
 
 from mock_ccfd_server import MockCcfdServer
 from bridge_client import pfcBridge
+from pfc5_bridge_client import pfc5Bridge

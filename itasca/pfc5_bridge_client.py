@@ -2,11 +2,11 @@ from itasca import PFC3D_Connection
 from itasca import FishBinaryReader
 import numpy as np
 
-class pfcBridge(object):
+class pfc5Bridge(object):
     def __init__(self):
         self._pfc = PFC3D_Connection()
-        self._pfc.start("pfc_bridge_server.p3dat")
-        self._pfc.connect()
+        #self._pfc.start("pfc5_bridge_server.p3dat")
+        #self._pfc.connect()
 
     def __del__(self):
         self.quit()
@@ -32,8 +32,11 @@ class pfcBridge(object):
 
     def map_return_type(self, val):
         if not type(val)==str: return val
+        if val.startswith(":error:"):
+            raise Exception(val)
         if not val.startswith(':'): return val
         if val==":null:": return None
+
 
         flag, idn = val.split()
         if flag == ':ball:':
@@ -56,7 +59,8 @@ class pfcBridge(object):
         self._pfc.send(10)
         self._pfc.send(command)
         res = self._pfc.receive()
-        assert res == 0
+        if res.startswith(":error:"):
+            raise Exception(res)
 
     def ball_radii(self):
         """ returns a NumPy array of the ball radii """
@@ -146,7 +150,7 @@ class pfc_object(object):
                 return arg
         return handle_fishcall
 
-
+# all this needs updating for PFC5.0
 class pfc_contact(pfc_object):
     methods = """c_next c_ball1 c_ball2 c_b1clist c_b2clist c_gobj1 c_gobj2 c_go1clist
 c_go2clist c_wseg c_type c_bflag c_broken c_x c_y c_z c_vpos c_nforce

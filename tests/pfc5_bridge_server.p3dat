@@ -1,0 +1,201 @@
+new
+
+;; fish python protocall:
+;;
+;; 10 signals a command to run:
+;;    read a string and execute it as a command
+;;    return zero on success
+;; 11 signals a fish statement to execute and return the result of
+;;    read a string, execute it as a fish expression and return the value.
+;; 12 signals a fish assignment statement to execute
+;;    read a string, execute it as a fish expression and return zero
+
+def inline
+  oo=io.out(string(ball.typeid))
+  oo=io.out(string(wall.typeid))
+  ;oo=io.out(string(contact.typeid("linear")))
+  oo=io.out(string(clump.typeid))
+end
+@inline
+
+
+def inline
+  array data_in(1)
+  array tmp(1)
+  array data_out(1)
+end
+@inline
+
+; def ball_id_head
+;   if ball_head = null
+;     ball_id_head = -1
+;   else
+;     ball_id_head = b_id(ball_head)
+;   endif
+; end
+
+; def ball_id_next
+;   if b_next(find_ball(current_id)) = null
+;     ball_id_next = -1
+;   else
+;     ball_id_next = b_id(b_next(find_ball(current_id)))
+;   endif
+; end
+
+
+; def write_ball_positions
+;   status = open('bin.fish', 1, 0) ; binary output
+;   bp = ball_head
+;   loop while bp # null
+;     tmp(1) = b_x(bp)
+;     status = write(tmp,1)
+;     tmp(1) = b_y(bp)
+;     status = write(tmp,1)
+;     tmp(1) = b_z(bp)
+;     status = write(tmp,1)
+;     bp = b_next(bp)
+;   end_loop
+;   status = close
+; end
+
+; def write_ball_velocities
+;   status = open('bin.fish', 1, 0) ; binary output
+;   bp = ball_head
+;   loop while bp # null
+;     tmp(1) = b_xvel(bp)
+;     status = write(tmp,1)
+;     tmp(1) = b_yvel(bp)
+;     status = write(tmp,1)
+;     tmp(1) = b_zvel(bp)
+;     status = write(tmp,1)
+;     bp = b_next(bp)
+;   end_loop
+;   status = close
+; end
+
+; def write_ball_radii
+;   status = open('bin.fish', 1, 0) ; binary output
+;   bp = ball_head
+;   loop while bp # null
+;     tmp(1) = b_rad(bp)
+;     status = write(tmp,1)
+;     bp = b_next(bp)
+;   end_loop
+;   status = close
+; end
+
+def map_ret_val
+  ;; input is the fish variable ret_value
+  ;; if this is a string, int, float return it
+  ;; if it is a pointer encode it
+
+  caseof type(ret_value)
+
+  case 1 ; int
+    map_ret_value = ret_value
+  case 2 ; float
+    map_ret_value = ret_value
+  case 3 ; string
+    map_ret_value = ret_value
+  case 4 ; pointer
+    if ret_value = null then
+      map_ret_value = ':null:'
+    else
+      caseof type.pointer(ret_value)
+        ;; pointer types:
+        ;; 21 memory, 100 ball, 101 wall, 102 contact, 103 clump,
+        ;; 104 measuerment sphere, 0 null
+      case 100
+        util.error = 'memory pointers are unsuported in python bridge'
+      case 1284443565
+        oo=io.out('ball type return')
+        map_ret_value = ':ball: ' + string(ball.id(ret_value))
+      case 1284531696
+        map_ret_value = ':wall: ' + string(wall.find(ret_value))
+      case 1010101
+        map_ret_val = ":contact:" + string(contact.id(ret_value))
+      case 1315332065
+        map_ret_value = ':clump: ' + string(clump.id(ret_value))
+      ; case 104
+      ;   map_ret_value = ':meas: ' + string(m_id(ret_value))
+      endcase
+; 5 array
+; 6 2D vector
+; 7 3D vector
+; 8 index
+; 9 boolean
+; 10 plugin
+; 11 matrix
+; 12 tensor
+; 13 structure
+    endif
+  case 5
+    util.error = 'arrays not (yet) supported in python bridge'
+  endcase
+end
+
+def open_socket
+  s = socket.open(0,0)
+
+  loop i(0, 1000)
+    oo = io.out('reading')
+    oo = socket.read(data_in, 1, 0, 10000000)
+    oo = io.out('got ' + string (data_in(1)) + ' from python server')
+    data_out(1) = 0
+
+    if type(data_in(1)) = 1 then
+
+      if data_in(1)=-1 then
+        oo=io.out('breaking out of server loop')
+        exit
+      endif
+
+      if data_in(1)=-2 then
+        oo=io.out('exiting PFC')
+        command
+          quit
+        end_command
+      endif
+
+      if data_in(1)=10 then
+        oo = socket.read(tmp, 1, 0, 10000000)
+        scommand = tmp(1)
+        data_out(1) = safe.command(scommand)
+      endif
+
+      if data_in(1)=11 then
+        oo = io.out('in 11')
+        oo = socket.read(tmp, 1, 0, 10000000)
+        oo = io.out('in 11 part 2')
+        fstring = tmp(1)
+        oo = io.out('got ' + fstring + ' from python server')
+        ret_value = safe.eval(fstring)
+        oo=io.out('eval done')
+        map_ret_val
+        data_out(1) = map_ret_value
+      endif
+
+      if data_in(1)=12 then
+        oo = socket.read(tmp, 1, 0, 10000000)
+        fstring = tmp(1)
+        oo = io.out('got ' + fstring + ' from python server')
+        ret_value = safe.eval(fstring)
+        data_out(1) = 0
+      endif
+
+    else
+      util.error = "unknown input to PFC/python bridge server"
+    endif
+
+    oo=io.out('returning ' + string(data_out(1)) + ' to python')
+    oo=socket.write(data_out, 1, 0)
+
+  end_loop
+end
+@open_socket
+
+def close_socket
+  oo=socket.close(1)
+  oo=io.out('closed socket connection')
+end
+@close_socket

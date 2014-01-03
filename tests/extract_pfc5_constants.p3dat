@@ -1,0 +1,7 @@
+def inline
+  oo=io.out(string(ball.typeid))
+  oo=io.out(string(wall.typeid))
+  oo=io.out(string(contact.typeid))
+  oo=io.out(string(clump.typeid))
+end
+@inline

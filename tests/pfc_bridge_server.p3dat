@@ -3,12 +3,12 @@ new
 ;; fish python protocall:
 ;;
 ;; 10 signals a command to run:
-;;    read a string and execuit it as a command
+;;    read a string and execute it as a command
 ;;    return zero on success
 ;; 11 signals a fish statement to execute and return the result of
-;;    read a string, execuit it as a fish expression and return the value.
+;;    read a string, execute it as a fish expression and return the value.
 ;; 12 signals a fish assignment statement to execute
-;;    read a string, execuit it as a fish expression and return zero
+;;    read a string, execute it as a fish expression and return zero
 
 
 def inline
