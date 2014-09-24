@@ -173,6 +173,10 @@ class UDEC_Connection(ItascaSoftwareConnection):
         self.process=True
         ItascaSoftwareConnection.connect(self)
 
+class threeDEC_Connection(ItascaSoftwareConnection):
+    def execuitable_name(self):
+        return "C:\\Program Files\\Itasca\\3DEC500\\exe64\\3dec_dp500_gui_64.exe"
+
 
 class FishBinaryReader(object):
     """Read structured FISH binary files.
