@@ -28,6 +28,6 @@ from itasca import FishBinaryReader
 from itasca import FLAC_Connection
 from itasca import UDEC_Connection
 from itasca import threeDEC_Connection
-
+from itasca import UDECFishBinaryReader
 from mock_ccfd_server import MockCcfdServer
 from bridge_client import pfcBridge
