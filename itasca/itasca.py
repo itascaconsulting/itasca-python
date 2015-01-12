@@ -261,3 +261,34 @@ class UDECFishBinaryReader(FishBinaryReader):
         value, = struct.unpack("i", data)
         data = self.file.read(struct.calcsize('i')) # read the dummy data off
         return value
+
+class FishBinaryWriter(object):
+    """Write fish binary data. data can be any iterable (array, list, etc.).
+
+    example: FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
+    """
+    def __init__(self, filename, data):
+        with open(filename, "wb") as f:
+            self._write_int(f,178278912)
+            for datum in data:
+                if type(datum) is float:
+                    self._write_int(f, 2)
+                    self._write_double(f, datum)
+                elif type(datum) is int:
+                    self._write_int(f, 1)
+                    self._write_int(f, datum)
+                else:
+                    raise TypeError(
+                        "Currently unsupported type for Fish binary write ")
+
+    def _write_int(self, f, datum):
+        f.write(struct.pack("i", datum))
+
+    def _write_double(self, f, datum):
+        f.write(struct.pack("d", datum))
+
+class UDECFishBinaryWriter(FishBinaryWriter):
+    "Fish Binary writer for UDEC (which has 8 byte ints)"
+    def _write_int(self, f, datum):
+        f.write(struct.pack("i", datum))
+        f.write(struct.pack("i", 0))
