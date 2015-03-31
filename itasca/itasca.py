@@ -40,6 +40,11 @@ class ItascaFishSocketServer(object):
         length two list of doubles, length three list of doubles or a
         string.
         """
+        while True:
+            _, write_ready, _ = select.select([], [self.conn], [], 0.0)
+            if write_ready: break
+            else: time.sleep(1e-8)
+
         if type(value) == int:
             self.conn.sendall(struct.pack("i", 1))
             self.conn.sendall(struct.pack("i", value))
