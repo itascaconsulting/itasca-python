@@ -12,6 +12,8 @@ FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 
 import struct
 import socket
+import select
+import time
 import subprocess
 import numpy as np
 
@@ -25,6 +27,10 @@ class ItascaFishSocketServer(object):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("", self.port))
         self.socket.listen(1)
+        while True:
+            connected, _, _ = select.select([self.socket], [], [], 0.0)
+            if connected: break
+            else: time.sleep(1e-8)
         self.conn, addr = self.socket.accept()
         print 'socket connection established by', addr
 
@@ -59,10 +65,17 @@ class ItascaFishSocketServer(object):
         else:
             raise Exception("unknown type in send_data")
 
+    def wait_for_data(self):
+        while True:
+            input_ready, _, _ = select.select([self.conn],[],[], 0.0)
+            if input_ready: return
+            else: time.sleep(1e-8)
+
     def read_type(self, type_string):
         byte_count = struct.calcsize(type_string)
         bytes_read = 0
         data = ''
+        self.wait_for_data()
         while bytes_read < byte_count:
             data_in = self.conn.recv(byte_count - bytes_read)
             data += data_in
@@ -153,7 +166,7 @@ class ItascaSoftwareConnection(object):
 
 class FLAC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
-        return "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d500_gui_64.exe"
+        return "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d501_gui_64.exe"
 
 class PFC3D_Connection(ItascaSoftwareConnection):
     def execuitable_name(self):
