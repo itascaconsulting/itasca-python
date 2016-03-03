@@ -18,17 +18,17 @@ setup(
     name = 'itasca',
     packages = ['itasca'], # this must be the same as the name above
     version = __import__('itasca').__version__,
-    description = "Python conectivity for Itasca software",
+    description = "Python connectivity for Itasca software",
     long_description = long_description,
     author = 'Jason Furtney',
+    requires = ['numpy'],
     author_email = 'jkfurtney@gmail.com',
     url = "https://github.com/jkfurtney/itasca-python",
     keywords = 'Itasca,FLAC,FLAC3D,PFC,UDEC,3DEC,PFC2D,PFC2D,FISH'.split(","),
     license          = "BSD",
-    install_requires = ['numpy >= 1.0.2'],
     classifiers = [
         'Programming Language :: Python :: 2',
-        "Development Status :: 5 - Production/Stable"
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: BSD License",
         'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',
         "Intended Audience :: Science/Research"

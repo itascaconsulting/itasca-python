@@ -12,9 +12,6 @@ FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 The Python interpreter is now embedded within PFC3D see:
 http://www.itascacg.com/python-and-pfc
 
-## Requirements
-
-`numpy` > 1.0.2
 
 ## Installation
 
@@ -28,6 +25,10 @@ or from source:
 ```python
 python setup.py install
 ```
+
+## Requirements
+
+`numpy` >= 1.0.2
 
 ## Low level socket interface to all Itasca codes
 
