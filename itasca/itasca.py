@@ -1,15 +1,3 @@
-"""
-Python connectivity for Itasca software.
-
-This library implements a connection via sockets between Python and
-the numerical modeling software from Itasca Consulting
-Group.
-
-itascacg.com/software
-
-FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
-"""
-
 import struct
 import socket
 import select
@@ -17,13 +5,16 @@ import time
 import subprocess
 import numpy as np
 
-class ItascaFishSocketServer(object):
-    "handles the low level details of the socket communication"
+class _ItascaFishSocketServer(object):
+    """Low level details of the Itasca FISH socket communication"""
     def __init__(self, fish_socket_id=0):
         assert type(fish_socket_id) is int and 0 <= fish_socket_id < 6
         self.port = 3333 + fish_socket_id
 
     def start(self):
+        """() -> None. Open the low level socket connection. Blocks but allows the Python thread scheduler to run.
+
+        """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("", self.port))
         self.socket.listen(1)
@@ -35,10 +26,8 @@ class ItascaFishSocketServer(object):
         print 'socket connection established by', addr
 
     def send_data(self, value):
-        """
-        Send value to Itasca software. value must be int, float,
-        length two list of doubles, length three list of doubles or a
-        string.
+        """(value: any) -> None. Send value to Itasca software. value must be int, float, length two list of doubles, length three list of doubles or a string.
+
         """
         while True:
             _, write_ready, _ = select.select([], [self.conn], [], 0.0)
@@ -71,12 +60,18 @@ class ItascaFishSocketServer(object):
             raise Exception("unknown type in send_data")
 
     def wait_for_data(self):
+        """() -> None. Block until data is available. This call allows the Python thread scheduler to run.
+
+        """
         while True:
             input_ready, _, _ = select.select([self.conn],[],[], 0.0)
             if input_ready: return
             else: time.sleep(1e-8)
 
     def read_type(self, type_string):
+        """(type: str) -> any. This method should not be called directly. Use the read_data method.
+
+        """
         byte_count = struct.calcsize(type_string)
         bytes_read = 0
         data = ''
@@ -89,6 +84,7 @@ class ItascaFishSocketServer(object):
         return data
 
     def read_data(self):
+        """() -> any. Read the next item from the socket connection."""
         raw_data = self.read_type("i")
         type_code, = struct.unpack("i", raw_data)
         if type_code == 1:     # int
@@ -117,38 +113,44 @@ class ItascaFishSocketServer(object):
         assert False, "Data read type error"
 
     def get_handshake(self):
+        """() -> int. Read the handshake packet from the socket. """
         raw_data = self.read_type("i")
         value, = struct.unpack("i", raw_data)
         print "handshake got: ", value
         return value
 
     def close(self):
+        """() -> None. Close the active socket connection."""
         self.conn.close()
 
 
-class ItascaSoftwareConnection(object):
-    """
-    Interface communication via FISH socket IO with an Itasca
-    program. This class spawns a new instance of the Itasca software
-    and initializes the socket communication.
+class _ItascaSoftwareConnection(object):
+    """Base class for communicating via FISH sockets with an Itasca program. This class spawns a new instance of the Itasca software and initializes the socket communication.
+
     """
     def __init__(self, fish_socket_id=0):
-        self.server = ItascaFishSocketServer(fish_socket_id)
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        self.executable_name = None
+        self.server = _ItascaFishSocketServer(fish_socket_id)
         self.iteration = 0
         self.global_time = 0
         self.fishcode = 178278912
 
-    def start(self, datafile_name):
+    def start(self, projectfile_name, datafile_name):
+        """(projectfile_name: str, datafile_name: str) -> None. Launch Itasca software in a separate process, open the given project and call the specified data file.
+
         """
-        launch Itasca software in a separate process with the given
-        filename as a command line argument
-        """
-        args = [self.execuitable_name(), datafile_name]
-        self.process = subprocess.Popen(args)
+        if projectfile_name is not None:
+            args = [self.executable_name, projectfile_name, 'call', datafile_name]
+            self.process = subprocess.Popen(args)
+        else:
+            args = [self.executable_name, datafile_name]
+            self.process = subprocess.Popen(args)
+
 
     def connect(self):
-        """
-        Connect to Itasca software, read fishcode to confirm connection
+        """() -> None. Connect to Itasca software, read fishcode to confirm connection. Call this function to establish the socket connection after calling the start method to launch the code.
+
         """
         assert self.process
         self.server.start()
@@ -158,42 +160,69 @@ class ItascaSoftwareConnection(object):
         print "connection OK"
 
     def send(self, data):
+        """(data: any) -> None. Send an item to the Itasca code."""
         self.server.send_data(data)
 
     def receive(self):
+        """() -> any. Read an item from the Itasca code."""
         return self.server.read_data()
 
     def end(self):
+        """() -> None. Close the socket connection."""
         self.server.close()
 
-    def executable_name(self):
-        raise NotImplementedError, "derived class must implement this function"
+class FLAC3D_Connection(_ItascaSoftwareConnection):
+    """Launch and connect to FLAC3D."""
+    def __init__(self, fish_socket_id=0):
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        _ItascaSoftwareConnection.__init__(self, fish_socket_id)
+        self.executable_name = "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d501_gui_64.exe"
 
-class FLAC3D_Connection(ItascaSoftwareConnection):
-    def execuitable_name(self):
-        return "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d501_gui_64.exe"
+class PFC3D_Connection(_ItascaSoftwareConnection):
+    """Launch and connect to PFC3D."""
+    def __init__(self, fish_socket_id=0):
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        _ItascaSoftwareConnection.__init__(self, fish_socket_id)
+        self.executable_name = "C:\\Program Files\\Itasca\\PFC500\\exe64\\pfc3d500_gui_64.exe"
 
-class PFC3D_Connection(ItascaSoftwareConnection):
-    def execuitable_name(self):
-        return "C:\\Program Files\\Itasca\\PFC3D400\\exe64\\evpfc3d_64.exe"
+class PFC2D_Connection(_ItascaSoftwareConnection):
+    """Launch and connect to PFC2D."""
+    def __init__(self, fish_socket_id=0):
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        _ItascaSoftwareConnection.__init__(self, fish_socket_id)
+        self.executable_name = "C:\\Program Files\\Itasca\\PFC500\\exe64\\pfc2d500_gui_64.exe"
 
-class FLAC_Connection(ItascaSoftwareConnection):
+
+class FLAC_Connection(_ItascaSoftwareConnection):
+    """Connect to FLAC. FLAC must be started manually first."""
     def start(self, _=None):
+        """() -> None. Calling this function raises an exception. Do not call this function, start FLAC manually."""
         raise NotImplemented("FLAC must be started manually")
     def connect(self):
-        self.process=True
-        ItascaSoftwareConnection.connect(self)
+        """() -> None. Call this function to connect to FLAC once it has been started manually.
 
-class UDEC_Connection(ItascaSoftwareConnection):
+        """
+        self.process=True
+        _ItascaSoftwareConnection.connect(self)
+
+class UDEC_Connection(_ItascaSoftwareConnection):
+    """Connect to UDEC. UDEC must be started manually first."""
     def start(self, _=None):
+        """() -> None. Calling this function raises an exception. Do not call this function, start UDEC manually."""
         raise NotImplemented("UDEC must be started manually")
     def connect(self):
-        self.process=True
-        ItascaSoftwareConnection.connect(self)
+        """() -> None. Call this function to connect to UDEC once it has been started manually.
 
-class threeDEC_Connection(ItascaSoftwareConnection):
-    def execuitable_name(self):
-        return "C:\\Program Files\\Itasca\\3DEC500\\exe64\\3dec_dp500_gui_64.exe"
+        """
+        self.process=True
+        _ItascaSoftwareConnection.connect(self)
+
+class threeDEC_Connection(_ItascaSoftwareConnection):
+    """Launch and connect to 3DEC."""
+    def __init__(self, fish_socket_id=0):
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        _ItascaSoftwareConnection.__init__(self, fish_socket_id)
+        self.executable_name = "C:\\Program Files\\Itasca\\3DEC500\\exe64\\3dec_dp500_gui_64.exe"
 
 
 class FishBinaryReader(object):
@@ -213,6 +242,7 @@ class FishBinaryReader(object):
 
     """
     def __init__(self, filename):
+        """(filename: str) -> FishBinaryReader object. """
         self.file = open(filename, "rb")
         fishcode = self._read_int()
         assert fishcode == 178278912, "invalid FISH binary file"
@@ -228,8 +258,9 @@ class FishBinaryReader(object):
         return value
 
     def read(self):
-        """read and return a value (converted to a python type) from the
-        .fish binary file."""
+        """() -> any. Read and return a value (converted to a Python type) from the .fish binary file.
+
+        """
         type_code = self._read_int()
 
         if type_code == 1:  # int
@@ -258,18 +289,20 @@ class FishBinaryReader(object):
         return self
 
     def next(self):
+        """() -> any. Get the next item from the FISH binary file."""
         try:
             return self.read()
         except:
             raise StopIteration
 
     def aslist(self):
-        """ Return fish file contents as a Python list """
+        """() -> [any]. Return fish file contents as a Python list."""
         return [x for x in self]
 
     def asarray(self):
-        """ Return fish file contents as a numpy array.
-        Types must be homogeneous."""
+        """() -> numpy array. Return fish file contents as a numpy array. Types must be homogeneous.
+
+        """
         return np.array(self.aslist())
 
 class UDECFishBinaryReader(FishBinaryReader):
@@ -286,6 +319,7 @@ class FishBinaryWriter(object):
     example: FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
     """
     def __init__(self, filename, data):
+        """(filename: str, data: iterable) -> FishBinaryWriter instance."""
         with open(filename, "wb") as f:
             self._write_int(f,178278912)
             for datum in data:

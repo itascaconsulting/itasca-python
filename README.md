@@ -17,12 +17,12 @@ http://www.itascacg.com/python-and-pfc
 Via pip:
 
 ```python
-$ pip install itasca
+pip install itasca
 ```
 
 or from source:
 ```python
-$ python setup.py install
+python setup.py install
 ```
 
 ## Low level socket interface to all Itasca codes
