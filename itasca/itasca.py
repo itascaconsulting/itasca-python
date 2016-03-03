@@ -3,6 +3,7 @@ import socket
 import select
 import time
 import subprocess
+import os
 import numpy as np
 
 class _ItascaFishSocketServer(object):
@@ -136,16 +137,15 @@ class _ItascaSoftwareConnection(object):
         self.global_time = 0
         self.fishcode = 178278912
 
-    def start(self, projectfile_name, datafile_name):
-        """(projectfile_name: str, datafile_name: str) -> None. Launch Itasca software in a separate process, open the given project and call the specified data file.
+    def start(self, datafile_name):
+        """(projectfile_name: str, datafile_name: str) -> None. Launch Itasca software in a separate process, open the specified data file. The green execute button must be pressed in the Itasca software to start the calculation.
 
         """
-        if projectfile_name is not None:
-            args = [self.executable_name, projectfile_name, 'call', datafile_name]
-            self.process = subprocess.Popen(args)
-        else:
+        if os.access(datafile_name, os.R_OK):
             args = [self.executable_name, datafile_name]
             self.process = subprocess.Popen(args)
+        else:
+            raise ValueError("The file {} is not readable".format(datafile_name))
 
 
     def connect(self):
