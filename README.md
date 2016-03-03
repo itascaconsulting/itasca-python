@@ -1,124 +1,30 @@
-Python connectivity for Itasca software.
+# Python connectivity for Itasca software.
 
 This library implements a connection via sockets between Python and
 the numerical modeling software from Itasca Consulting
-Group.
+Group. Functions are provided to read and write files in the Itasca
+FISH binary format.
 
 www.itascacg.com/software
 
 FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 
+The Python interpreter is now embedded within PFC3D see:
+http://www.itascacg.com/python-and-pfc
+
 ## Installation
 
-A pure-python module, easy installation.
+Via pip:
 
+```python
+$ pip install itasca
+```
+
+or from source:
 ```python
 $ python setup.py install
 ```
 
-## Demo high-level interface to PFC
-
-```python
->>> from itasca import pfcBridge
->>> pfc = pfcBridge()  # launches a new PFC instance
-```
-
-Evaluate fish expressions:
-
-```python
->>> res = pfc.eval("1+1")
->>> assert res == 2
-
->>> res = pfc.eval("cos(1+2.2)")
->>> assert res == math.cos(1+2.2)
-
->>> res = pfc.eval("a=123.456")
->>> assert res == 0
-
->>> res = pfc.eval("a")
->>> assert res == 123.456
-```
-
-Execute PFC commands:
-
-```python
->>> pfc.cmd("ball id 1 rad 1 x 12.30 y .2 z 0")
->>> pfc.cmd("ball id 2 rad 1 x 12.30 y .4 z 3")
->>> pfc.cmd("ball id 3 rad 1 x 12.30 y .5 z 6")
->>> pfc.cmd("prop dens 2500 kn 1.0e3 ks 1.0e3")
->>> pfc.cmd("set grav 0 0 -9.81")
->>> pfc.cmd("measure id 1 x 0.122 y 0.4 z -0.3 rad 0.0225")
->>> pfc.cmd("wall face 0 0 0  1 1 1  2 0 0 fric 0.25")
-```
-
-Use a *Pythonic* interface to PFC model objects:
-
-```python
->>> for ball in pfc.ball_list():
->>>     print ball.x(), ball.y(), ball.z()
-12.3 0.5 6.0
-12.3 0.4 3.0
-12.3 0.2 0.0
-
->>> pfc.time()
-0.0
-
->>> pfc.ball_head()
-<pfc ball id=3>
-
->>> pfc.ball_near3(0,0,0)
-<pfc ball id=1>
-```
-
-Get and set PFC model properties programmaticlly
-
-```python
->>> b = pfc.ball_head()
->>> b.rad(99.9)
->>> assert b.rad() == 99.9
->>> b = b.next()
->>> print b.rad()
-1.0
-
->>> w = pfc.wall_head()
->>> print w
-<pfc wall id=1>
->>> print w.fric()
-0.25
->>> w.fric(0.112)
->>> assert w.fric() == 0.112
-
->>> meas = pfc.circ_head()
->>> print meas
-<pfc measurement sphere id=1>
->>> print meas.x()
-0.122
->>> meas.x(12.55)
->>> assert meas.x() == 12.55
-```
-
-NumPy array interface
-
-```python
->>> pfc.ball_positions()
-array([[ 12.3   0.5   6. ]
-       [ 12.3   0.4   3. ]
-       [ 12.3   0.2   0. ]])
->>> pfc.cmd("cycle 100")
->>> pfc.ball_velocities()
-array([[ 0.      ,  0.      , -2.190092],
-       [ 0.      ,  0.      , -2.190092],
-       [ 0.      ,  0.      , -2.190092]])
-```
-
-Close connection:
-```python
->>> pfc.quit()  # quits PFC
-```
-or
-```python
->>> pfc.close()  # to return control to PFC
-```
 ## Low level socket interface to all Itasca codes
 
 Send and receive FISH data to Itasca codes
@@ -149,11 +55,55 @@ flac3d.end()
 On the Itasca code side a simple server loop reads these values and
 performs some action.
 
+```
+;; this is the FLAC3D side of the FLAC3D/Python coupling example.
+
+;; FLAC3D is started by the Python program. When FLAC3D is started it
+;; is given this input file as a command line argument. To start the
+;; coupling example run this file by clicking the green button. The
+;; open_socket FISH function opens a connection to the Python
+;; program. FLAC3D then waits for the Python program to write a FISH
+;; parameter. 1000.1 is added to the value and it is sent back to the
+;; Python program. When FLAC3D receives a value of -1 from Python it
+;; exits the read/write loop.
+
+
+def open_socket
+  array data(1)
+  s = sopen(0,1,3333)
+
+  loop i(0, 1000)
+    oo = out('reading')
+    oo = sread(data, 1, 1)
+    oo = out(buildstr("got %1 from python server", data(1)))
+
+    if type(data(1)) = 1 then
+      if data(1)=-1 then
+        oo = out('breaking out of read/write loop')
+        exit
+      endif
+      data(1) = data(1) + 1000.1
+    endif
+    oo=swrite(data, 1, 1)
+
+  end_loop
+
+end
+@open_socket
+
+def close_socket
+  oo=sclose(1)
+  oo=out('closed socket connection')
+end
+@close_socket
+```
+
+
 ## Fish binary format reader
 
-Generate some fish binary data
+Here is an example of creating FISH binary data with FLAC3D
 
-```python
+```
 def genIOtestdata
   array a(1)
   fp = open('testdata.fish', 1, 0)
@@ -172,21 +122,34 @@ end
 @genIOtestdata
 ```
 
-Read it in Python
+This can be read from Python
 
 ```python
->>> from itasca import FishBinaryReader
+from itasca import FishBinaryReader
+fish_file = FishBinaryReader("testdata.fish")
+```
 
->>> fish_file = FishBinaryReader("testdata.fish")
+Either one entry at a time:
 
->>> assert fish_file.read() == 1
->>> assert fish_file.read() == 99.987
->>> assert fish_file.read() == "James"
->>> assert fish_file.read() == [99.5, 89.3]
->>> assert fish_file.read() == [7.0, 8.0, 9.0]
+```python
+assert fish_file.read() == 1
+assert fish_file.read() == 99.987
+assert fish_file.read() == "James"
+assert fish_file.read() == [99.5, 89.3]
+assert fish_file.read() == [7.0, 8.0, 9.0]
+```
+Or all entries can be read into a list or `numpy` array
 
->>> FishBinaryReader("testdata2.fish").aslist()  # convert data to list
-[1, 2, 3, 4, 5, 6, 7]
->>> FishBinaryReader("testdata2.fish").asarray() # convert to NumPy array
-array([[1, 2, 3, 4, 5, 6, 7])
+```python
+
+FishBinaryReader("testdata2.fish").aslist()  # convert data to list
+   [1, 2, 3, 4, 5, 6, 7]
+FishBinaryReader("testdata2.fish").asarray() # convert to NumPy array
+   array([[1, 2, 3, 4, 5, 6, 7])
+```
+
+Similarly FISH binary data files be written from Python.
+
+```python
+FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
 ```
