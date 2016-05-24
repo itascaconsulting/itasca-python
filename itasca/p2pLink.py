@@ -142,7 +142,7 @@ class p2pLinkServer(_socketBase):
             if connected: break
             else: time.sleep(1e-8)
         self.conn, addr = self.socket.accept()
-        assert self.read_data() == socketBase.code
+        assert self.read_data() == _socketBase.code
         print "got code"
 
 class p2pLinkClient(_socketBase):
@@ -160,5 +160,5 @@ class p2pLinkClient(_socketBase):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((machine,self.port))
         self.conn = self.socket
-        self.send_data(socketBase.code)
+        self.send_data(_socketBase.code)
         print "sent code"
