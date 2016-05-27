@@ -8,41 +8,55 @@ import cStringIO
 
 class _socketBase(object):
     code = 12345
-    def send_data(self, value):
-        """(value: any) -> None. Send value. value must be a number, a string or a NumPy array. """
+
+    def _sendall(self, data):
+        """(bytes: str) -> None. Low level socket send, do not call this function directly."""
+        nbytes = len(data)
+        sent = 0
+        while sent < nbytes:
+            self._wait_for_write()
+            sent += self.conn.send(data[sent:])
+
+
+    def _wait_for_write(self):
+        """() -> None. Block until socket is write ready but let thread scheduler run. """
         while True:
             _, write_ready, _ = select.select([], [self.conn], [], 0.0)
             if write_ready: break
             else: time.sleep(1e-8)
+
+
+    def send_data(self, value):
+        """(value: any) -> None. Send value. value must be a number, a string or a NumPy array. """
         if type(value) == int:
-            self.conn.sendall(struct.pack("i", 1))
-            self.conn.sendall(struct.pack("i", value))
+            self._sendall(struct.pack("i", 1))
+            self._sendall(struct.pack("i", value))
         elif type(value) == float:
-            self.conn.sendall(struct.pack("i", 2))
-            self.conn.sendall(struct.pack("d", value))
+            self._sendall(struct.pack("i", 2))
+            self._sendall(struct.pack("d", value))
         elif type(value) == list and len(value)==2:
             float_list = [float(x) for x in value]
-            self.conn.sendall(struct.pack("i", 5))
-            self.conn.sendall(struct.pack("dd", float_list[0], float_list[1]))
+            self._sendall(struct.pack("i", 5))
+            self._sendall(struct.pack("dd", float_list[0], float_list[1]))
         elif type(value) == list and len(value)==3:
             float_list = [float(x) for x in value]
-            self.conn.sendall(struct.pack("i", 6))
-            self.conn.sendall(struct.pack("ddd", float_list[0],
+            self._sendall(struct.pack("i", 6))
+            self._sendall(struct.pack("ddd", float_list[0],
                                           float_list[1], float_list[2]))
         elif type(value) == str:
             length = len(value)
-            self.conn.sendall(struct.pack("ii", 3, length))
+            self._sendall(struct.pack("ii", 3, length))
             buffer_length = 4*(1+(length-1)/4)
             format_string = "%is" % buffer_length
             value += " "*(buffer_length - length)
-            self.conn.sendall(struct.pack(format_string, value))
+            self._sendall(struct.pack(format_string, value))
         elif type(value) == np.ndarray:
-            self.conn.sendall(struct.pack("i", 7))
+            self._sendall(struct.pack("i", 7))
             buffer = cStringIO.StringIO()
             np.save(buffer, value)
             data = buffer.getvalue()
-            self.conn.sendall(struct.pack("i", len(data)))
-            self.conn.sendall(data)
+            self._sendall(struct.pack("i", len(data)))
+            self._sendall(data)
         else:
             raise Exception("unknown type in send_data")
 
@@ -63,9 +77,9 @@ class _socketBase(object):
             byte_count = array_bytes
         bytes_read = 0
         data = ''
-        self.wait_for_data()
         while bytes_read < byte_count:
-            data_in = self.conn.recv(byte_count - bytes_read)
+            self.wait_for_data()
+            data_in = self.conn.recv(min(4096,byte_count - bytes_read))
             data += data_in
             bytes_read += len(data_in)
         assert len(data)==byte_count, "bad packet data"

@@ -12,7 +12,7 @@ FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 See https://github.com/jkfurtney/itasca-python for more information.
 """
 
-__version__ = "2016.05.24"
+__version__ = "2016.05.27"
 
 from itasca import FLAC3D_Connection
 from itasca import PFC3D_Connection
