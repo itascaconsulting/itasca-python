@@ -6,6 +6,63 @@ import select
 import time
 import cStringIO
 
+class _fileSocketAdapter(object):
+    """This object is an adapter which allows np.save and np.load to write
+    directly to the socket. """
+    def __init__(self, s):
+        self.s=s
+        self.first = True
+        self.offset = 0
+
+    def write(self, data):
+        #print "writing", data
+        self.s._sendall(data)
+
+    def read(self, byte_count):
+        bytes_read = 0
+        data = ''
+        # this is a hack because we have to support seek for np.load
+        if self.offset:
+            assert self.offset <= byte_count
+            assert self.offset==6
+            assert not self.first
+            data += self.buff
+            bytes_read += self.offset
+            self.offset = 0
+        while bytes_read < byte_count:
+            self.s.wait_for_data()
+            data_in = self.s.conn.recv(min(4096, byte_count-bytes_read))
+            data += data_in
+            bytes_read += len(data_in)
+        # this is a hack because we have to support seek for np.load
+        if self.first and byte_count==6:
+            self.buff = data
+            print "storing", data
+            self.first = False
+        #print "read", data
+        return data
+
+    def readline(self):
+        data=''
+        while True:
+            self.s.wait_for_data()
+            byte = self.s.conn.recv(1)
+            if byte == '\n':
+                return data
+            else:
+                data += byte
+                #print "readline", data
+        return data
+
+    def seek(self, a0, a1):
+        "this is a hack to support np.load and np.save talking over sockets."
+        assert a1 == 1
+        assert a0 == -6
+        self.offset = 6
+        print "Seek", a0,a1
+
+
+
 class _socketBase(object):
     code = 12345
 
@@ -52,11 +109,7 @@ class _socketBase(object):
             self._sendall(struct.pack(format_string, value))
         elif type(value) == np.ndarray:
             self._sendall(struct.pack("i", 7))
-            buffer = cStringIO.StringIO()
-            np.save(buffer, value)
-            data = buffer.getvalue()
-            self._sendall(struct.pack("i", len(data)))
-            self._sendall(data)
+            np.save(_fileSocketAdapter(self), value)
         else:
             raise Exception("unknown type in send_data")
 
@@ -113,8 +166,7 @@ class _socketBase(object):
             value0, value1, value3 = struct.unpack("ddd", raw_data)
             return [value0, value1, value3]
         elif type_code == 7:  # NumPy array:
-            nbytes = struct.unpack("i", self.read_type("i"))[0]
-            a = np.load(cStringIO.StringIO(self.read_type("",nbytes)))
+            a = np.load(_fileSocketAdapter(self))
             return a
         assert False, "Data read type error"
 
