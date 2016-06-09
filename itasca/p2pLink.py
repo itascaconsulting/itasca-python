@@ -4,21 +4,22 @@ import struct
 import socket
 import select
 import time
-import cStringIO
+
 
 class _fileSocketAdapter(object):
-    """This object is an adapter which allows np.save and np.load to write
-    directly to the socket. """
+    """This object is an adapter which allows np.save and np.load to write directly to the socket. This object appears to be a file object but does reading and writing over a socket connection. """
     def __init__(self, s):
+        "(s: _baseSocket) -> None. Constructor."
         self.s=s
         self.first = True
         self.offset = 0
 
     def write(self, data):
-        #print "writing", data
+        "(data: str) -> None. Write bytes to stream."
         self.s._sendall(data)
 
     def read(self, byte_count):
+        "(byte_count: int) -> str. Read bytes from stream."
         bytes_read = 0
         data = ''
         # this is a hack because we have to support seek for np.load
@@ -37,12 +38,11 @@ class _fileSocketAdapter(object):
         # this is a hack because we have to support seek for np.load
         if self.first and byte_count==6:
             self.buff = data
-            print "storing", data
             self.first = False
-        #print "read", data
         return data
 
     def readline(self):
+        "() -> str. Read a line from the stream."
         data=''
         while True:
             self.s.wait_for_data()
@@ -51,15 +51,14 @@ class _fileSocketAdapter(object):
                 return data
             else:
                 data += byte
-                #print "readline", data
         return data
 
     def seek(self, a0, a1):
-        "this is a hack to support np.load and np.save talking over sockets."
+        "(offset: int, mode: int) -> None. This is a hack to support np.load and np.save talking over sockets."
         assert a1 == 1
         assert a0 == -6
+        assert len(self.buff)==6
         self.offset = 6
-        print "Seek", a0,a1
 
 
 
