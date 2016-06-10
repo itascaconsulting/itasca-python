@@ -7,11 +7,13 @@ binary format.
 
 www.itascacg.com/software
 
-FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
+*FLAC*, *FLAC3D*, *PFC2D*, *PFC3D*, *UDEC* & *3DEC*
 
-The Python interpreter is now embedded within PFC3D see:
+The Python interpreter is now embedded within *PFC3D* see:
 http://www.itascacg.com/python-and-pfc
 
+In the Python interpreter inside *PFC3D* this functionality is
+available in the `itasca.util` module.
 
 ## Installation
 
@@ -30,9 +32,15 @@ python setup.py install
 
 `numpy` >= 1.0.2
 
-## Low level socket interface to all Itasca codes
+## TCP socket connection to all Itasca codes
 
-Send and receive FISH data to Itasca codes
+The classes `FLAC3D_Connection`, `PFC3D_Connection`,
+`FLAC_Connection`, `UDEC_Connection` and `threeDEC_Connection` allow
+Python to connect to an Itasca code and exchange information with FISH
+programs. The data types are converted between FISH and Python. `int`,
+`float`, `str`, and length 2 and 3 vectors are supported.
+
+The following is an example of the Python side of a connection.
 
 ```python
 from itasca import FLAC3D_Connection
@@ -106,7 +114,9 @@ end
 
 ## Fish binary format reader
 
-Here is an example of creating FISH binary data with FLAC3D
+The classes `FishBinaryReader` and `FishBinaryWriter` allow Python to
+read and write FISH binary data. The following is an example of FLAC3D
+writing FISH binary data.
 
 ```
 def genIOtestdata
@@ -127,7 +137,7 @@ end
 @genIOtestdata
 ```
 
-This can be read from Python
+This data can be read from Python
 
 ```python
 from itasca import FishBinaryReader
@@ -157,4 +167,55 @@ Similarly FISH binary data files be written from Python.
 
 ```python
 FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
+```
+
+Special classes are provided for *UDEC* which uses a different integer
+size: `UDECFishBinaryReader`, and `UDECFishBinaryWriter`
+
+## Python to Python socket link
+
+Simple TCP socket client and server classes are provided to link two
+Python programs. `str`, `int`, `float`, and NumPy arrays can be sent
+over the link. The classes `p2pLinkServer` and `p2pLinkClient` are
+demonstrated below.
+
+An example of the server side of the connection is given below.
+
+```python
+from itasca import p2pLinkServer
+import numpy as np
+
+with p2pLinkServer() as s:
+    s.start()
+
+    while True:
+        a = s.read_data()
+        if type(a) is int and a ==-1:
+            print "done"
+            break
+        print "got", a
+        if type(a) is np.ndarray:
+            print a.shape
+```
+
+Finally, an example of the client side of the connection is given.
+
+```python
+from itasca import p2pLinkClient
+import numpy as np
+
+with p2pLinkClient() as s:
+    s.connect("localhost")
+    s.send_data("James")
+    s.send_data(np.array([1,2,3]))
+
+    adata = np.random.random((1000,1000))
+    print adata
+    s.send_data(adata)
+
+    for i in range(10):
+        print "sent", i
+        s.send_data(i)
+
+    s.send_data(-1)
 ```
