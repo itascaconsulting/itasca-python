@@ -9,10 +9,11 @@ www.itascacg.com/software
 
 *FLAC*, *FLAC3D*, *PFC2D*, *PFC3D*, *UDEC* & *3DEC*
 
-The Python interpreter is now embedded within *PFC3D* see:
-http://www.itascacg.com/python-and-pfc
-
-In the Python interpreter inside *PFC3D* this functionality is
+The Python interpreter is now embedded within *FLAC3D* and *PFC3D* see:
+ - http://www.itascacg.com/python-and-pfc
+ - https://www.itascacg.com/software/flac3d/videos/using-python-in-flac3d-6
+ 
+In the Python interpreter inside *FLAC3D* and *PFC3D* the functionality of this module is
 available in the `itasca.util` module.
 
 ## Installation
