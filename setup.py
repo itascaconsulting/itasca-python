@@ -17,17 +17,18 @@ from distutils.core import setup
 setup(
     name = 'itasca',
     packages = ['itasca'], # this must be the same as the name above
-    version = __import__('itasca').__version__,
+    version = "2018.08.20",
     description = "Python connectivity for Itasca software",
     long_description = long_description,
     author = 'Jason Furtney',
     requires = ['numpy'],
     author_email = 'jkfurtney@gmail.com',
     url = "https://github.com/jkfurtney/itasca-python",
-    keywords = 'Itasca,FLAC,FLAC3D,PFC,UDEC,3DEC,PFC2D,PFC2D,FISH'.split(","),
+    keywords = 'Itasca,FLAC,FLAC3D,PFC,UDEC,3DEC,PFC2D,PFC3D,FISH'.split(","),
     license          = "BSD",
     classifiers = [
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: BSD License",
         'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',

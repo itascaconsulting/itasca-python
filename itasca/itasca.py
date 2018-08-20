@@ -7,6 +7,7 @@ itascacg.com/software
 
 FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC"""
 
+from __future__ import print_function
 import struct
 import socket
 import select
@@ -33,7 +34,7 @@ class _ItascaFishSocketServer(object):
             if connected: break
             else: time.sleep(1e-8)
         self.conn, addr = self.socket.accept()
-        print 'socket connection established by', addr
+        print('socket connection established by', addr)
 
     def send_data(self, value):
         """(value: any) -> None. Send value to Itasca software. value must be int, float, length two list of doubles, length three list of doubles or a string.
@@ -126,7 +127,7 @@ class _ItascaFishSocketServer(object):
         """() -> int. Read the handshake packet from the socket. """
         raw_data = self.read_type("i")
         value, = struct.unpack("i", raw_data)
-        print "handshake got: ", value
+        print("handshake got: ", value)
         return value
 
     def close(self):
@@ -164,9 +165,9 @@ class _ItascaSoftwareConnection(object):
         assert self.process
         self.server.start()
         value = self.server.get_handshake()
-        print "got handshake packet"
+        print("got handshake packet")
         assert value == self.fishcode
-        print "connection OK"
+        print("connection OK")
 
     def send(self, data):
         """(data: any) -> None. Send an item to the Itasca code."""
@@ -531,7 +532,7 @@ class _socketBase(object):
         return self
 
     def __exit__(self, eType, eValue, eTrace):
-        print "cleaning up socket"
+        print("cleaning up socket")
         self.close()
 
 class p2pLinkServer(_socketBase):
@@ -557,7 +558,7 @@ class p2pLinkServer(_socketBase):
             else: time.sleep(1e-8)
         self.conn, addr = self.socket.accept()
         assert self.read_data() == _socketBase.code
-        print "got code"
+        print("got code")
 
 class p2pLinkClient(_socketBase):
     """Python to Python socket link client. Send and receive numbers, strings
@@ -575,4 +576,4 @@ class p2pLinkClient(_socketBase):
         self.socket.connect((machine,self.port))
         self.conn = self.socket
         self.send_data(_socketBase.code)
-        print "sent code"
+        print("sent code")
