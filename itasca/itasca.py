@@ -298,12 +298,14 @@ class FishBinaryReader(object):
         self._read_int()   # pop the magic number off
         return self
 
-    def next(self):
+    def __next__(self):
         """() -> any. Get the next item from the FISH binary file."""
         try:
             return self.read()
         except:
             raise StopIteration
+
+    next = __next__  # alias for Python 2 support.
 
     def aslist(self):
         """() -> [any]. Return fish file contents as a Python list."""
