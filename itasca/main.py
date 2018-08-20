@@ -112,7 +112,7 @@ class _ItascaFishSocketServer(object):
             buffer_length = (4*(1+(length-1)/4))
             format_string = "%is" % buffer_length
             data = self.read_type(format_string)
-            return data [:length]
+            return data[:length].decode("utf-8")
         elif type_code == 5:   # V2
             raw_data = self.read_type("dd")
             value0, value1 = struct.unpack("dd", raw_data)
@@ -286,7 +286,7 @@ class FishBinaryReader(object):
             buffer_length = 4*(1+(length-1)/4)
             format_string = "%is" % buffer_length
             data = self.file.read(struct.calcsize(format_string))
-            return data [:length]
+            return data[:length].decode("utf-8")
         if type_code == 5:  # v2
             return [self._read_double(), self._read_double()]
         if type_code == 6:  # v3
@@ -507,7 +507,7 @@ class _socketBase(object):
             buffer_length = (4*(1+(length-1)/4))
             format_string = "%is" % buffer_length
             data = self.read_type(format_string)
-            return data [:length]
+            return data[:length].decode("utf-8")
         elif type_code == 5:   # V2
             raw_data = self.read_type("dd")
             value0, value1 = struct.unpack("dd", raw_data)

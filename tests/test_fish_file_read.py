@@ -9,4 +9,4 @@ assert fish_file.read() == 99.987
 assert fish_file.read() == "James"
 assert fish_file.read() == [99.5, 89.3]
 assert fish_file.read() == [7.0, 8.0, 9.0]
-print "FISH read test passed"
+print("FISH read test passed")
