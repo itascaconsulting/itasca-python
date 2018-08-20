@@ -14,13 +14,13 @@ See https://github.com/jkfurtney/itasca-python for more information.
 
 __version__ = "2018.08.20"
 
-from itasca import FLAC3D_Connection
-from itasca import PFC3D_Connection
-from itasca import FishBinaryReader
-from itasca import FishBinaryWriter
-from itasca import FLAC_Connection
-from itasca import UDEC_Connection
-from itasca import threeDEC_Connection
-from itasca import UDECFishBinaryReader
-from itasca import UDECFishBinaryWriter
-from itasca import p2pLinkClient, p2pLinkServer
+from .main import FLAC3D_Connection
+from .main import PFC3D_Connection
+from .main import FishBinaryReader
+from .main import FishBinaryWriter
+from .main import FLAC_Connection
+from .main import UDEC_Connection
+from .main import threeDEC_Connection
+from .main import UDECFishBinaryReader
+from .main import UDECFishBinaryWriter
+from .main import p2pLinkClient, p2pLinkServer
