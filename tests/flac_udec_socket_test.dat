@@ -6,7 +6,7 @@
 ;; To run this example:
 
 ;; (i) The python program test_udec_connection.py or
-;; test_flac3d_connection.py should be run first to start the socket
+;; test_flac_connection.py should be run first to start the socket
 ;; server that UDEC or FLAC will connect to.
 
 ;; (ii) FLAC (or UDEC) must be started manually and this file needs to be
