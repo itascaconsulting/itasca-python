@@ -63,7 +63,7 @@ class _ItascaFishSocketServer(object):
         elif type(value) == str:
             length = len(value)
             self.conn.sendall(struct.pack("ii", 3, length))
-            buffer_length = 4*(1+(length-1)/4)
+            buffer_length = 4*(1+(length-1)/4) # this may be the wrong buffer length?
             format_string = "%is" % buffer_length
             value += " "*(buffer_length - length)
             self.conn.sendall(struct.pack(format_string, value))
@@ -85,7 +85,7 @@ class _ItascaFishSocketServer(object):
         """
         byte_count = struct.calcsize(type_string)
         bytes_read = 0
-        data = ''
+        data = b''
         self.wait_for_data()
         while bytes_read < byte_count:
             data_in = self.conn.recv(byte_count - bytes_read)
@@ -109,7 +109,7 @@ class _ItascaFishSocketServer(object):
         elif type_code == 3:   # string
             length_data = self.read_type("i")
             length, = struct.unpack("i", length_data)
-            buffer_length = (4*(1+(length-1)/4))
+            buffer_length = length + ((4 * (1 + length // 4) - length) % 4)
             format_string = "%is" % buffer_length
             data = self.read_type(format_string)
             return data[:length].decode("utf-8")
@@ -283,7 +283,7 @@ class FishBinaryReader(object):
             return self._read_double()
         if type_code == 3:
             length = self._read_int()
-            buffer_length = 4*(1+(length-1)/4)
+            buffer_length = 4*(1+(length-1)/4) # this may be wrong
             format_string = "%is" % buffer_length
             data = self.file.read(struct.calcsize(format_string))
             return data[:length].decode("utf-8")
