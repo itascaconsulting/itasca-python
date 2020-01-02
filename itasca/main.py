@@ -388,7 +388,6 @@ class _fileSocketAdapter(object):
         while bytes_read < byte_count:
             self.s.wait_for_data()
             data_in = self.s.conn.recv(min(4096, byte_count-bytes_read))
-            #data += data_in
             data = b"".join([data, data_in])
             bytes_read += len(data_in)
         # this is a hack because we have to support seek for np.load
