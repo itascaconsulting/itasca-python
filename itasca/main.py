@@ -376,7 +376,7 @@ class _fileSocketAdapter(object):
     def read(self, byte_count):
         "(byte_count: int) -> str. Read bytes from stream."
         bytes_read = 0
-        data = ''
+        data = b''
         # this is a hack because we have to support seek for np.load
         if self.offset:
             assert self.offset <= byte_count
@@ -388,7 +388,8 @@ class _fileSocketAdapter(object):
         while bytes_read < byte_count:
             self.s.wait_for_data()
             data_in = self.s.conn.recv(min(4096, byte_count-bytes_read))
-            data += data_in
+            #data += data_in
+            data = b"".join([data, data_in])
             bytes_read += len(data_in)
         # this is a hack because we have to support seek for np.load
         if self.first and byte_count==6:
@@ -456,8 +457,8 @@ class _socketBase(object):
             self._sendall(struct.pack("ii", 3, length))
             buffer_length = 4*(1+(length-1)/4)
             format_string = "%is" % buffer_length
-            value += " "*(buffer_length - length)
-            self._sendall(struct.pack(format_string, value))
+            value += " "*int(buffer_length - length)
+            self._sendall(struct.pack(format_string, value.encode("utf-8")))
         elif type(value) == np.ndarray:
             self._sendall(struct.pack("i", 7))
             np.save(_fileSocketAdapter(self), value)
@@ -480,11 +481,11 @@ class _socketBase(object):
         else:
             byte_count = array_bytes
         bytes_read = 0
-        data = ''
+        data = b''
         while bytes_read < byte_count:
             self.wait_for_data()
             data_in = self.conn.recv(min(4096,byte_count - bytes_read))
-            data += data_in
+            data = b"".join([data, data_in])
             bytes_read += len(data_in)
         assert len(data)==byte_count, "bad packet data"
         return data
