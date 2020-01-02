@@ -56,11 +56,11 @@ flac3d.send([1,2,3])
 flac3d.send("James")
 
 for i in range(10):
-    print "sending", i, "...",
+    print(f"sending {i}...")
     flac3d.send(i)
-    print "sent", i
+    print(f"sent {i}")
     value = flac3d.receive()
-    print "got", value, "from FLAC3D"
+    print(f"got {value} from FLAC3D")
 
 flac3d.send(-1)
 flac3d.end()
@@ -192,11 +192,11 @@ with p2pLinkServer() as s:
     while True:
         a = s.read_data()
         if type(a) is int and a ==-1:
-            print "done"
+            print("done")
             break
-        print "got", a
+        print(f"got {a}")
         if type(a) is np.ndarray:
-            print a.shape
+            print(a.shape)
 ```
 
 Finally, an example of the client side of the connection is given.
@@ -211,11 +211,11 @@ with p2pLinkClient() as s:
     s.send_data(np.array([1,2,3]))
 
     adata = np.random.random((1000,1000))
-    print adata
+    print(adata)
     s.send_data(adata)
 
     for i in range(10):
-        print "sent", i
+        print("sent {i}")
         s.send_data(i)
 
     s.send_data(-1)
