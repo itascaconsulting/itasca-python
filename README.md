@@ -16,6 +16,8 @@ The Python interpreter is now embedded within *FLAC3D* and *PFC3D* see:
 In the Python interpreter inside *FLAC3D* and *PFC3D* the functionality of this module is
 available in the `itasca.util` module.
 
+*Note:* If the used Itasca code includes a python installation the use of the [p2pLinkClient/p2pLinkServer classes](#-python-to-python-socket-link) is recommended. For Itascsa codes without python use the [TCP Socket with Itasca Fish](#-tcp-socket-connection-to-all-itasca-codes-using-fish).
+
 ## Installation
 
 Via pip:
@@ -33,7 +35,55 @@ python setup.py install
 
 `numpy` >= 1.0.2
 
-## TCP socket connection to all Itasca codes
+## Python to Python socket link
+
+Simple TCP socket client and server classes are provided to link two
+Python programs. `str`, `int`, `float`, and NumPy arrays can be sent
+over the link. The classes `p2pLinkServer` and `p2pLinkClient` are
+demonstrated below.
+
+An example of the server side of the connection is given below.
+
+```python
+from itasca import p2pLinkServer
+import numpy as np
+
+with p2pLinkServer() as s:
+    s.start()
+
+    while True:
+        a = s.read_data()
+        if type(a) is int and a ==-1:
+            print("done")
+            break
+        print(f"got {a}")
+        if type(a) is np.ndarray:
+            print(a.shape)
+```
+
+Finally, an example of the client side of the connection is given.
+
+```python
+from itasca import p2pLinkClient
+import numpy as np
+
+with p2pLinkClient() as s:
+    s.connect("localhost")
+    s.send_data("James")
+    s.send_data(np.array([1,2,3]))
+
+    adata = np.random.random((1000,1000))
+    print(adata)
+    s.send_data(adata)
+
+    for i in range(10):
+        print(f"sent {i}")
+        s.send_data(i)
+
+    s.send_data(-1)
+```
+
+## TCP socket connection to all Itasca codes using FISH
 
 The classes `FLAC3D_Connection`, `PFC3D_Connection`,
 `FLAC_Connection`, `UDEC_Connection` and `threeDEC_Connection` allow
@@ -173,50 +223,3 @@ FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
 Special classes are provided for *UDEC* which uses a different integer
 size: `UDECFishBinaryReader`, and `UDECFishBinaryWriter`
 
-## Python to Python socket link
-
-Simple TCP socket client and server classes are provided to link two
-Python programs. `str`, `int`, `float`, and NumPy arrays can be sent
-over the link. The classes `p2pLinkServer` and `p2pLinkClient` are
-demonstrated below.
-
-An example of the server side of the connection is given below.
-
-```python
-from itasca import p2pLinkServer
-import numpy as np
-
-with p2pLinkServer() as s:
-    s.start()
-
-    while True:
-        a = s.read_data()
-        if type(a) is int and a ==-1:
-            print("done")
-            break
-        print(f"got {a}")
-        if type(a) is np.ndarray:
-            print(a.shape)
-```
-
-Finally, an example of the client side of the connection is given.
-
-```python
-from itasca import p2pLinkClient
-import numpy as np
-
-with p2pLinkClient() as s:
-    s.connect("localhost")
-    s.send_data("James")
-    s.send_data(np.array([1,2,3]))
-
-    adata = np.random.random((1000,1000))
-    print(adata)
-    s.send_data(adata)
-
-    for i in range(10):
-        print(f"sent {i}")
-        s.send_data(i)
-
-    s.send_data(-1)
-```
