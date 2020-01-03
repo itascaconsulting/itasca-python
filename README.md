@@ -16,7 +16,7 @@ The Python interpreter is now embedded within *FLAC3D* and *PFC3D* see:
 In the Python interpreter inside *FLAC3D* and *PFC3D* the functionality of this module is
 available in the `itasca.util` module.
 
-*Note:* If the used Itasca code includes a python installation the use of the [p2pLinkClient/p2pLinkServer classes](#-python-to-python-socket-link) is recommended. For Itascsa codes without python use the [TCP Socket with Itasca Fish](#-tcp-socket-connection-to-all-itasca-codes-using-fish).
+*Note:* If the used Itasca code includes a python installation the use of the p2pLinkClient/p2pLinkServer classes (python to python socket link) is recommended. For Itascsa codes without python use the TCP Socket with Itasca Fish.
 
 ## Installation
 
