@@ -127,7 +127,8 @@ flac3d.shutdown()
 ```
 
 On the Itasca code side a simple server loop reads these values and
-performs some action.
+performs some action. Below is an example that is execute be the
+script above (see *tests/flac3d_socket_test.f3dat*):
 
 ```
 ;; this is the FLAC3D side of the FLAC3D/Python coupling example.
