@@ -65,8 +65,8 @@ class _ItascaFishSocketServer(object):
             self.conn.sendall(struct.pack("ii", 3, length))
             buffer_length = 4*(1+(length-1)/4) # this may be the wrong buffer length?
             format_string = "%is" % buffer_length
-            value += " "*(buffer_length - length)
-            self.conn.sendall(struct.pack(format_string, value))
+            value += " "*int(buffer_length - length)
+            self.conn.sendall(struct.pack(format_string, value.encode('utf-8')))
         else:
             raise Exception("unknown type in send_data")
 
