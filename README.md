@@ -144,30 +144,28 @@ performs some action.
 
 def open_socket
   array data(1)
-  s = sopen(0,1,3333)
+  s = socket.open(0,1,3333)
 
   loop i(0, 1000)
-    oo = out('reading')
-    oo = sread(data, 1, 1)
-    oo = out(buildstr("got %1 from python server", data(1)))
+    oo = io.out('reading')
+    oo = socket.read(data, 1, 1)
+    oo = io.out(string.build("got %1 from python server", data(1)))
 
     if type(data(1)) = 1 then
       if data(1)=-1 then
-        oo = out('breaking out of read/write loop')
+        oo = io.out('breaking out of read/write loop')
         exit
       endif
       data(1) = data(1) + 1000.1
     endif
-    oo=swrite(data, 1, 1)
-
+    oo = socket.write(data, 1, 1)
   end_loop
-
 end
 @open_socket
 
 def close_socket
-  oo=sclose(1)
-  oo=out('closed socket connection')
+  oo = socket.close(1)
+  oo = io.out('closed socket connection')
 end
 @close_socket
 ```
