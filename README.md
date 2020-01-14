@@ -123,6 +123,7 @@ for i in range(10):
 
 flac3d.send(-1)
 flac3d.end()
+flac3d.shutdown()
 ```
 
 On the Itasca code side a simple server loop reads these values and
