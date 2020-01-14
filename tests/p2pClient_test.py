@@ -14,7 +14,7 @@ with p2pLinkClient() as s:
     s.send_data(adata)
 
     for i in range(10):
-        print "sent", i
+        print("sent", i)
         s.send_data(i)
 
     s.send_data(-1)

@@ -5,7 +5,6 @@ import numpy as np
 
 with p2pLinkServer() as s:
     s.start()
-
     while True:
         a=s.read_data()
         if type(a) is int and a ==-1:
