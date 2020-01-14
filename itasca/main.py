@@ -23,8 +23,9 @@ class _ItascaFishSocketServer(object):
         self.port = 3333 + fish_socket_id
 
     def start(self):
-        """() -> None. Open the low level socket connection. Blocks but allows the Python thread scheduler to run.
-
+        """() -> None.
+        Open the low level socket connection. Blocks but allows the Python thread
+        scheduler to run.
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("", self.port))
@@ -37,8 +38,9 @@ class _ItascaFishSocketServer(object):
         print('socket connection established by', addr)
 
     def send_data(self, value):
-        """(value: any) -> None. Send value to Itasca software. value must be int, float, length two list of doubles, length three list of doubles or a string.
-
+        """(value: any) -> None.
+        Send value to Itasca software. value must be int, float, length two list 
+        of doubles, length three list of doubles or a string.
         """
         while True:
             _, write_ready, _ = select.select([], [self.conn], [], 0.0)
@@ -48,13 +50,16 @@ class _ItascaFishSocketServer(object):
         if type(value) == int:
             self.conn.sendall(struct.pack("i", 1))
             self.conn.sendall(struct.pack("i", value))
+
         elif type(value) == float:
             self.conn.sendall(struct.pack("i", 2))
             self.conn.sendall(struct.pack("d", value))
+
         elif type(value) == list and len(value)==2:
             float_list = [float(x) for x in value]
             self.conn.sendall(struct.pack("i", 5))
             self.conn.sendall(struct.pack("dd", float_list[0], float_list[1]))
+
         elif type(value) == list and len(value)==3:
             float_list = [float(x) for x in value]
             self.conn.sendall(struct.pack("i", 6))
@@ -71,8 +76,9 @@ class _ItascaFishSocketServer(object):
             raise Exception("unknown type in send_data")
 
     def wait_for_data(self):
-        """() -> None. Block until data is available. This call allows the Python thread scheduler to run.
-
+        """() -> None.
+        Block until data is available. This call allows the Python thread scheduler 
+        to run.
         """
         while True:
             input_ready, _, _ = select.select([self.conn],[],[], 0.0)
@@ -80,8 +86,8 @@ class _ItascaFishSocketServer(object):
             else: time.sleep(1e-8)
 
     def read_type(self, type_string):
-        """(type: str) -> any. This method should not be called directly. Use the read_data method.
-
+        """(type: str) -> any.
+        This method should not be called directly. Use the read_data method.
         """
         byte_count = struct.calcsize(type_string)
         bytes_read = 0
@@ -95,17 +101,21 @@ class _ItascaFishSocketServer(object):
         return data
 
     def read_data(self):
-        """() -> any. Read the next item from the socket connection."""
+        """() -> any.
+        Read the next item from the socket connection.
+        """
         raw_data = self.read_type("i")
         type_code, = struct.unpack("i", raw_data)
         if type_code == 1:     # int
             raw_data = self.read_type("i")
             value, = struct.unpack("i", raw_data)
             return value
+
         elif type_code == 2:   # float
             raw_data = self.read_type("d")
             value, = struct.unpack("d", raw_data)
             return value
+
         elif type_code == 3:   # string
             length_data = self.read_type("i")
             length, = struct.unpack("i", length_data)
@@ -113,32 +123,42 @@ class _ItascaFishSocketServer(object):
             format_string = "%is" % buffer_length
             data = self.read_type(format_string)
             return data[:length].decode("utf-8")
+
         elif type_code == 5:   # V2
             raw_data = self.read_type("dd")
             value0, value1 = struct.unpack("dd", raw_data)
             return [value0, value1]
+
         elif type_code == 6:   # V3
             raw_data = self.read_type("ddd")
             value0, value1, value3 = struct.unpack("ddd", raw_data)
             return [value0, value1, value3]
+
         assert False, "Data read type error"
 
     def get_handshake(self):
-        """() -> int. Read the handshake packet from the socket. """
+        """() -> int.
+        Read the handshake packet from the socket.
+        """
+
         raw_data = self.read_type("i")
         value, = struct.unpack("i", raw_data)
         print("handshake got: ", value)
         return value
 
     def close(self):
-        """() -> None. Close the active socket connection."""
+        """() -> None.
+        Close the active socket connection.
+        """
         self.conn.close()
 
 
 class _ItascaSoftwareConnection(object):
-    """Base class for communicating via FISH sockets with an Itasca program. This class spawns a new instance of the Itasca software and initializes the socket communication.
-
+    """Base class for communicating via FISH sockets with an Itasca program. This
+    class spawns a new instance of the Itasca software and initializes the socket
+    communication.
     """
+
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         self.executable_name = None
@@ -148,19 +168,23 @@ class _ItascaSoftwareConnection(object):
         self.fishcode = 178278912
 
     def start(self, datafile_name):
-        """(datafile_name: str) -> None. Launch Itasca software in a separate process, open the specified data file. The green execute button must be pressed in the Itasca software to start the calculation.
-
+        """(datafile_name: str) -> None.
+        Launch Itasca software in a separate process, open the specified data file.
+        The green execute button must be pressed in the Itasca software to start
+        the calculation.
         """
         if os.access(datafile_name, os.R_OK):
             args = f'"{self.executable_name}" call {datafile_name}'
             self.process = subprocess.Popen(args)
+
         else:
             raise ValueError("The file {} is not readable".format(datafile_name))
 
-
     def connect(self):
-        """() -> None. Connect to Itasca software, read fishcode to confirm connection. Call this function to establish the socket connection after calling the start method to launch the code.
-
+        """() -> None.
+        Connect to Itasca software, read fishcode to confirm connection. Call
+        this function to establish the socket connection after calling the start
+        method to launch the code.
         """
         assert self.process
         self.server.start()
@@ -170,19 +194,27 @@ class _ItascaSoftwareConnection(object):
         print("connection OK")
 
     def send(self, data):
-        """(data: any) -> None. Send an item to the Itasca code."""
+        """(data: any) -> None.
+        Send an item to the Itasca code.
+        """
         self.server.send_data(data)
 
     def receive(self):
-        """() -> any. Read an item from the Itasca code."""
+        """() -> any.
+        Read an item from the Itasca code.
+        """
         return self.server.read_data()
 
     def end(self):
-        """() -> None. Close the socket connection."""
+        """() -> None.
+        Close the socket connection.
+        """
         self.server.close()
 
     def shutdown(self):
-        """()-> None. Shutdown running softwarecode """
+        """()-> None.
+        Shutdown running softwarecode.
+        """
         self.process.kill()
 
 class FLAC3D_Connection(_ItascaSoftwareConnection):
@@ -215,8 +247,8 @@ class FLAC_Connection(_ItascaSoftwareConnection):
         self.executable_name = "C:\\Program Files\\Itasca\\FLAC800\\exe64\\flac800_64.exe"
 
     def connect(self):
-        """() -> None. Call this function to connect to FLAC once it has been started manually.
-
+        """() -> None.
+        Call this function to connect to FLAC once it has been started manually.
         """
         self.process=True
         _ItascaSoftwareConnection.connect(self)
@@ -229,8 +261,8 @@ class UDEC_Connection(_ItascaSoftwareConnection):
         self.executable_name = "C:\\Program Files\\Itasca\\UDEC700\\Exe64\\udec700_gui.exe"
 
     def connect(self):
-        """() -> None. Call this function to connect to UDEC once it has been started manually.
-
+        """() -> None.
+        Call this function to connect to UDEC once it has been started manually.
         """
         self.process=True
         _ItascaSoftwareConnection.connect(self)
@@ -245,7 +277,6 @@ class ThreeDEC_Connection(_ItascaSoftwareConnection):
 
 class FishBinaryReader(object):
     """Read structured FISH binary files.
-
     Call the constructor with the structured FISH filename and call
     read() to read individual values. This class also supports
     iteration. Return values are converted to python types. Supports
@@ -257,7 +288,6 @@ class FishBinaryReader(object):
     42
     "this is a string"
     [1.0,2.0,3.0]
-
     """
     def __init__(self, filename):
         """(filename: str) -> FishBinaryReader object. """
@@ -276,27 +306,33 @@ class FishBinaryReader(object):
         return value
 
     def read(self):
-        """() -> any. Read and return a value (converted to a Python type) from the .fish binary file.
-
+        """() -> any.
+        Read and return a value (converted to a Python type) from the .fish
+        binary file.
         """
         type_code = self._read_int()
 
         if type_code == 1:  # int
             return self._read_int()
+
         if type_code == 8:  # bool
             value = self._read_int()
             return_value = True if value else False
             return return_value
+
         if type_code == 2:  # float
             return self._read_double()
+
         if type_code == 3:
             length = self._read_int()
             buffer_length = 4*(1+(length-1)/4) # this may be wrong
             format_string = "%is" % buffer_length
             data = self.file.read(struct.calcsize(format_string))
             return data[:length].decode("utf-8")
+
         if type_code == 5:  # v2
             return [self._read_double(), self._read_double()]
+
         if type_code == 6:  # v3
             return [self._read_double(), self._read_double(),
                     self._read_double()]
@@ -307,7 +343,9 @@ class FishBinaryReader(object):
         return self
 
     def __next__(self):
-        """() -> any. Get the next item from the FISH binary file."""
+        """() -> any.
+        Get the next item from the FISH binary file.
+        """
         try:
             return self.read()
         except:
@@ -316,12 +354,14 @@ class FishBinaryReader(object):
     next = __next__  # alias for Python 2 support.
 
     def aslist(self):
-        """() -> [any]. Return fish file contents as a Python list."""
+        """() -> [any].
+        Return fish file contents as a Python list.
+        """
         return [x for x in self]
 
     def asarray(self):
-        """() -> numpy array. Return fish file contents as a numpy array. Types must be homogeneous.
-
+        """() -> numpy array.
+        Return fish file contents as a numpy array. Types must be homogeneous.
         """
         return np.array(self.aslist())
 
@@ -335,7 +375,6 @@ class UDECFishBinaryReader(FishBinaryReader):
 
 class FishBinaryWriter(object):
     """Write fish binary data. data can be any iterable (array, list, etc.).
-
     example: FishBinaryWriter("t.fis", [12.23, 1, 33.0203, 1234.4])
     """
     def __init__(self, filename, data):
@@ -360,7 +399,7 @@ class FishBinaryWriter(object):
         f.write(struct.pack("d", datum))
 
 class UDECFishBinaryWriter(FishBinaryWriter):
-    "Fish Binary writer for UDEC (which has 8 byte ints)"
+    """Fish Binary writer for UDEC (which has 8 byte ints)"""
     def _write_int(self, f, datum):
         f.write(struct.pack("i", datum))
         f.write(struct.pack("i", 0))
@@ -370,19 +409,28 @@ class UDECFishBinaryWriter(FishBinaryWriter):
 ######################################################################
 
 class _fileSocketAdapter(object):
-    """This object is an adapter which allows np.save and np.load to write directly to the socket. This object appears to be a file object but does reading and writing over a socket connection. """
+    """This object is an adapter which allows np.save and np.load to write 
+    directly to the socket. This object appears to be a file object but does
+    reading and writing over a socket connection.
+    """
     def __init__(self, s):
-        "(s: _baseSocket) -> None. Constructor."
+        """(s: _baseSocket) -> None.
+        Constructor.
+        """
         self.s=s
         self.first = True
         self.offset = 0
 
     def write(self, data):
-        "(data: str) -> None. Write bytes to stream."
+        """(data: str) -> None.
+        Write bytes to stream.
+        """
         self.s._sendall(data)
 
     def read(self, byte_count):
-        "(byte_count: int) -> str. Read bytes from stream."
+        """(byte_count: int) -> str.
+        Read bytes from stream.
+        """
         bytes_read = 0
         data = b''
         # this is a hack because we have to support seek for np.load
@@ -393,11 +441,13 @@ class _fileSocketAdapter(object):
             data += self.buff
             bytes_read += self.offset
             self.offset = 0
+
         while bytes_read < byte_count:
             self.s.wait_for_data()
             data_in = self.s.conn.recv(min(4096, byte_count-bytes_read))
             data = b"".join([data, data_in])
             bytes_read += len(data_in)
+
         # this is a hack because we have to support seek for np.load
         if self.first and byte_count==6:
             self.buff = data
@@ -405,7 +455,8 @@ class _fileSocketAdapter(object):
         return data
 
     def readline(self):
-        "() -> str. Read a line from the stream."
+        """() -> str.
+        Read a line from the stream."""
         data=''
         while True:
             self.s.wait_for_data()
@@ -417,18 +468,21 @@ class _fileSocketAdapter(object):
         return data
 
     def seek(self, a0, a1):
-        """(offset: int, mode: int) -> None. This is a hack to support np.load and np.save talking over sockets."""
+        """(offset: int, mode: int) -> None.
+        This is a hack to support np.load and np.save talking over sockets.
+        """
         assert a1 == 1
         assert a0 == -6
         assert len(self.buff)==6
         self.offset = 6
 
-
 class _socketBase(object):
     code = 12345
 
     def _sendall(self, data):
-        """(bytes: str) -> None. Low level socket send, do not call this function directly."""
+        """(bytes: str) -> None.
+        Low level socket send, do not call this function directly.
+        """
         nbytes = len(data)
         sent = 0
         while sent < nbytes:
@@ -436,29 +490,37 @@ class _socketBase(object):
             sent += self.conn.send(data[sent:])
 
     def _wait_for_write(self):
-        """() -> None. Block until socket is write ready but let thread scheduler run. """
+        """() -> None.
+        Block until socket is write ready but let thread scheduler run.
+        """
         while True:
             _, write_ready, _ = select.select([], [self.conn], [], 0.0)
             if write_ready: break
             else: time.sleep(1e-8)
 
     def send_data(self, value):
-        """(value: any) -> None. Send value. value must be a number, a string or a NumPy array. """
+        """(value: any) -> None.
+        Send value. value must be a number, a string or a NumPy array.
+        """
         if type(value) == int:
             self._sendall(struct.pack("i", 1))
             self._sendall(struct.pack("i", value))
+
         elif type(value) == float:
             self._sendall(struct.pack("i", 2))
             self._sendall(struct.pack("d", value))
+
         elif type(value) == list and len(value)==2:
             float_list = [float(x) for x in value]
             self._sendall(struct.pack("i", 5))
             self._sendall(struct.pack("dd", float_list[0], float_list[1]))
+
         elif type(value) == list and len(value)==3:
             float_list = [float(x) for x in value]
             self._sendall(struct.pack("i", 6))
             self._sendall(struct.pack("ddd", float_list[0],
                                           float_list[1], float_list[2]))
+
         elif type(value) == str:
             length = len(value)
             self._sendall(struct.pack("ii", 3, length))
@@ -466,14 +528,18 @@ class _socketBase(object):
             format_string = "%is" % buffer_length
             value += " "*int(buffer_length - length)
             self._sendall(struct.pack(format_string, value.encode("utf-8")))
+
         elif type(value) == np.ndarray:
             self._sendall(struct.pack("i", 7))
             np.save(_fileSocketAdapter(self), value)
+
         else:
             raise Exception("unknown type in send_data")
 
     def wait_for_data(self):
-        """() -> None. Block until data is available. This call allows the Python thread scheduler to run.
+        """() -> None.
+        Block until data is available. This call allows the Python thread
+        scheduler to run.
         """
         while True:
             input_ready, _, _ = select.select([self.conn],[],[], 0.0)
@@ -481,12 +547,15 @@ class _socketBase(object):
             else: time.sleep(1e-8)
 
     def read_type(self, type_string, array_bytes=None):
-        """(type: str) -> any. This method should not be called directly. Use the read_data method.
+        """(type: str) -> any.
+        This method should not be called directly. Use the read_data method.
         """
         if array_bytes is None:
             byte_count = struct.calcsize(type_string)
+
         else:
             byte_count = array_bytes
+
         bytes_read = 0
         data = b''
         while bytes_read < byte_count:
@@ -498,17 +567,22 @@ class _socketBase(object):
         return data
 
     def read_data(self):
-        """() -> any. Read the next item from the socket connection."""
+        """() -> any.
+        Read the next item from the socket connection.
+        """
         raw_data = self.read_type("i")
         type_code, = struct.unpack("i", raw_data)
+
         if type_code == 1:     # int
             raw_data = self.read_type("i")
             value, = struct.unpack("i", raw_data)
             return value
+
         elif type_code == 2:   # float
             raw_data = self.read_type("d")
             value, = struct.unpack("d", raw_data)
             return value
+
         elif type_code == 3:   # string
             length_data = self.read_type("i")
             length, = struct.unpack("i", length_data)
@@ -516,24 +590,30 @@ class _socketBase(object):
             format_string = "%is" % buffer_length
             data = self.read_type(format_string)
             return data[:length].decode("utf-8")
+
         elif type_code == 5:   # V2
             raw_data = self.read_type("dd")
             value0, value1 = struct.unpack("dd", raw_data)
             return [value0, value1]
+
         elif type_code == 6:   # V3
             raw_data = self.read_type("ddd")
             value0, value1, value3 = struct.unpack("ddd", raw_data)
             return [value0, value1, value3]
+
         elif type_code == 7:  # NumPy array:
             a = np.load(_fileSocketAdapter(self))
             return a
         assert False, "Data read type error"
 
     def close(self):
-        """() -> None. Close the active socket connection."""
+        """() -> None.
+        Close the active socket connection.
+        """
         if hasattr(self, "conn"):
             self.conn.shutdown(socket.SHUT_RDWR)
             self.conn.close()
+
         else:
             self.socket.shutdown(socket.SHUT_RDWR)
             self.socket.close()
@@ -562,10 +642,15 @@ class p2pLinkServer(_socketBase):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(("", self.port))
         self.socket.listen(1)
+
         while True:
             connected, _, _ = select.select([self.socket], [], [], 0.0)
-            if connected: break
-            else: time.sleep(1e-8)
+            if connected:
+                break
+
+            else:
+                time.sleep(1e-8)
+
         self.conn, addr = self.socket.accept()
         assert self.read_data() == _socketBase.code
         print("got code")
