@@ -417,7 +417,7 @@ class _fileSocketAdapter(object):
         return data
 
     def seek(self, a0, a1):
-        "(offset: int, mode: int) -> None. This is a hack to support np.load and np.save talking over sockets."
+        """(offset: int, mode: int) -> None. This is a hack to support np.load and np.save talking over sockets."""
         assert a1 == 1
         assert a0 == -6
         assert len(self.buff)==6
