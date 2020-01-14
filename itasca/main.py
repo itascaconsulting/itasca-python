@@ -193,7 +193,7 @@ class PFC3D_Connection(_ItascaSoftwareConnection):
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         _ItascaSoftwareConnection.__init__(self, fish_socket_id)
-        self.executable_name = "C:\\Program Files\\Itasca\\PFC500\\exe64\\pfc3d500_gui_64.exe"
+        self.executable_name = "C:\\Program Files\\Itasca\\PFC600\\exe64\\pfc3d600_gui.exe"
 
 class PFC2D_Connection(_ItascaSoftwareConnection):
     """Launch and connect to PFC2D."""
