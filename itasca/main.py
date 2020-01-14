@@ -231,12 +231,11 @@ class UDEC_Connection(_ItascaSoftwareConnection):
         self.process=True
         _ItascaSoftwareConnection.connect(self)
 
-class threeDEC_Connection(_ItascaSoftwareConnection):
+class ThreeDEC_Connection(_ItascaSoftwareConnection):
     """Launch and connect to 3DEC."""
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         _ItascaSoftwareConnection.__init__(self, fish_socket_id)
-        #self.executable_name = "C:\\Program Files\\Itasca\\3DEC500\\exe64\\3dec_dp500_gui_64.exe"
         self.executable_name = "C:\\Program Files\\Itasca\\3DEC520\\exe64\\3dec_dp520_gui_64.exe"
 
 

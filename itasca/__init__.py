@@ -20,7 +20,7 @@ from .main import FishBinaryReader
 from .main import FishBinaryWriter
 from .main import FLAC_Connection
 from .main import UDEC_Connection
-from .main import threeDEC_Connection
+from .main import ThreeDEC_Connection
 from .main import UDECFishBinaryReader
 from .main import UDECFishBinaryWriter
 from .main import p2pLinkClient, p2pLinkServer
