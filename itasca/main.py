@@ -186,7 +186,7 @@ class FLAC3D_Connection(_ItascaSoftwareConnection):
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         _ItascaSoftwareConnection.__init__(self, fish_socket_id)
-        self.executable_name = "C:\\Program Files\\Itasca\\Flac3d500\\exe64\\flac3d501_gui_64.exe"
+        self.executable_name = "C:\\Program Files\\Itasca\\FLAC3D700\\exe64\\flac3d700_gui.exe"
 
 class PFC3D_Connection(_ItascaSoftwareConnection):
     """Launch and connect to PFC3D."""
