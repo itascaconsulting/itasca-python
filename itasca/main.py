@@ -205,9 +205,6 @@ class PFC2D_Connection(_ItascaSoftwareConnection):
 
 class FLAC_Connection(_ItascaSoftwareConnection):
     """Connect to FLAC. FLAC must be started manually first."""
-    #def start(self, _=None):
-    #    """() -> None. Calling this function raises an exception. Do not call this function, start FLAC manually."""
-    #    raise NotImplemented("FLAC must be started manually")
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         _ItascaSoftwareConnection.__init__(self, fish_socket_id)
