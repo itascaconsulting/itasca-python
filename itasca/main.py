@@ -152,7 +152,7 @@ class _ItascaSoftwareConnection(object):
 
         """
         if os.access(datafile_name, os.R_OK):
-            args = [self.executable_name, datafile_name]
+            args = f'"{self.executable_name}" call {datafile_name}'
             self.process = subprocess.Popen(args)
         else:
             raise ValueError("The file {} is not readable".format(datafile_name))
@@ -180,6 +180,10 @@ class _ItascaSoftwareConnection(object):
     def end(self):
         """() -> None. Close the socket connection."""
         self.server.close()
+
+    def shutdown(self):
+        """()-> None. Shutdown running softwarecode """
+        self.process.kill()
 
 class FLAC3D_Connection(_ItascaSoftwareConnection):
     """Launch and connect to FLAC3D."""
