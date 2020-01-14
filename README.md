@@ -16,6 +16,7 @@ The Python interpreter is now embedded within *FLAC3D* and *PFC3D* see:
 In the Python interpreter inside *FLAC3D* and *PFC3D* the functionality of this module is
 available in the `itasca.util` module.
 
+
 *Note:* If the used Itasca code includes a python installation the use of the p2pLinkClient/p2pLinkServer classes (python to python socket link) is recommended. For Itascsa codes without python use the TCP Socket with Itasca Fish.
 
 ## Installation
@@ -35,7 +36,15 @@ python setup.py install
 
 `numpy` >= 1.0.2
 
-## Python to Python socket link
+## Usage
+
+The Itasca python module can be used after the installation such as any other 
+python module. The `client` is running outside the Itasca code and the `server`
+is running within the Itasca code. The `client` is a python script using this 
+module. For the `server` can be started as python or fish function. See the 
+accordings sections below for further details.
+
+### Python to Python socket link
 
 Simple TCP socket client and server classes are provided to link two
 Python programs. `str`, `int`, `float`, and NumPy arrays can be sent
@@ -83,7 +92,7 @@ with p2pLinkClient() as s:
     s.send_data(-1)
 ```
 
-## TCP socket connection to all Itasca codes using FISH
+### TCP socket connection to all Itasca codes using FISH
 
 The classes `FLAC3D_Connection`, `PFC3D_Connection`,
 `FLAC_Connection`, `UDEC_Connection` and `threeDEC_Connection` allow
@@ -162,8 +171,20 @@ end
 @close_socket
 ```
 
+### Executable path 
 
-## Fish binary format reader
+The module uses the default installation path to search for the executables of 
+the software code. The default executable path can be modified, example: 
+
+```python 
+from itasca import FLAC3D_Connection
+f3d = FLAC3D_Connection()
+f3d.executable_name = "C:\\my\\custom\\path\\FLAC3D700\\exe64\\flac3d700_gui.exe"
+f3d.start('my_script')
+... 
+```
+
+### Fish binary format reader
 
 The classes `FishBinaryReader` and `FishBinaryWriter` allow Python to
 read and write FISH binary data. The following is an example of FLAC3D
