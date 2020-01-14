@@ -106,7 +106,7 @@ The following is an example of the Python side of a connection.
 from itasca import FLAC3D_Connection
 
 flac3d = FLAC3D_Connection()
-flac3d.start("flac_socket_test.f3dat")
+flac3d.start("flac3d_socket_test.f3dat")
 flac3d.connect()
 
 flac3d.send(99.9)
@@ -158,16 +158,17 @@ def open_socket
       endif
       data(1) = data(1) + 1000.1
     endif
+
     oo = socket.write(data, 1, 1)
   end_loop
 end
-@open_socket
+[ open_socket ]
 
 def close_socket
   oo = socket.close(1)
   oo = io.out('closed socket connection')
 end
-@close_socket
+[ close_socket ]
 ```
 
 ### Executable path 
