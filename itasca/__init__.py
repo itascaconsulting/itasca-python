@@ -16,6 +16,7 @@ __version__ = "2018.08.20"
 
 from .main import FLAC3D_Connection
 from .main import PFC3D_Connection
+from .main import PFC2D_Connection
 from .main import FishBinaryReader
 from .main import FishBinaryWriter
 from .main import FLAC_Connection
