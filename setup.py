@@ -17,7 +17,7 @@ from distutils.core import setup
 setup(
     name = 'itasca',
     packages = ['itasca'], # this must be the same as the name above
-    version = "2018.08.20",
+    version = "2020.01.14",
     description = "Python connectivity for Itasca software",
     long_description = long_description,
     author = 'Jason Furtney',
