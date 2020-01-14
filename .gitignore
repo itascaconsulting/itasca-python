@@ -9,3 +9,5 @@ pp_temp.fis
 pp_tempfile.dat
 testdata.fish
 MANIFEST
+venv/
+*.swp
