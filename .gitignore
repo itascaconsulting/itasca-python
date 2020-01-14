@@ -11,3 +11,4 @@ testdata.fish
 MANIFEST
 venv/
 *.swp
+local_test/

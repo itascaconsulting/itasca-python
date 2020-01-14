@@ -204,7 +204,7 @@ class PFC2D_Connection(_ItascaSoftwareConnection):
 
 
 class FLAC_Connection(_ItascaSoftwareConnection):
-    """Connect to FLAC. FLAC must be started manually first."""
+    """Launch and connect to FLAC. """
     def __init__(self, fish_socket_id=0):
         """(fish_socket_id=0: int) -> Instance. Constructor."""
         _ItascaSoftwareConnection.__init__(self, fish_socket_id)
@@ -218,10 +218,12 @@ class FLAC_Connection(_ItascaSoftwareConnection):
         _ItascaSoftwareConnection.connect(self)
 
 class UDEC_Connection(_ItascaSoftwareConnection):
-    """Connect to UDEC. UDEC must be started manually first."""
-    def start(self, _=None):
-        """() -> None. Calling this function raises an exception. Do not call this function, start UDEC manually."""
-        raise NotImplemented("UDEC must be started manually")
+    """Launch and connect to UDEC. """
+    def __init__(self, fish_socket_id=0):
+        """(fish_socket_id=0: int) -> Instance. Constructor."""
+        _ItascaSoftwareConnection.__init__(self, fish_socket_id)
+        self.executable_name = "C:\\Program Files\\Itasca\\UDEC700\\Exe64\\udec700_gui.exe"
+
     def connect(self):
         """() -> None. Call this function to connect to UDEC once it has been started manually.
 
