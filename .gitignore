@@ -2,6 +2,7 @@
 build/
 dist/
 itasca.egg-info/
+*.egg-info
 bin.fish
 errorlog.dmp
 errorlog.txt

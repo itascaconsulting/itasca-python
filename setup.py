@@ -13,7 +13,7 @@ FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC
 See https://github.com/jkfurtney/itasca-python for more information.
 """
 
-from distutils.core import setup
+from setuptools import setup
 setup(
     name = 'itasca',
     packages = ['itasca'], # this must be the same as the name above
