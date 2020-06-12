@@ -8,6 +8,7 @@ flac3d.send(99.9)
 flac3d.send([1,2])
 flac3d.send([1,2,3])
 flac3d.send("James")
+flac3d.send({1:2, 2:3, "john":"doe"})
 
 for i in range(10):
     print "sending", i, "...",

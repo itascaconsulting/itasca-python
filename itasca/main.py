@@ -8,6 +8,7 @@ itascacg.com/software
 FLAC, FLAC3D, PFC2D, PFC3D, UDEC & 3DEC"""
 
 from __future__ import print_function
+import json
 import struct
 import socket
 import select
@@ -533,6 +534,12 @@ class _socketBase(object):
             self._sendall(struct.pack("i", 7))
             np.save(_fileSocketAdapter(self), value)
 
+        elif type(value) == dict:
+            length = len(value)
+            data = json.dumps(value).encode("utf-8")
+            self._sendall(struct.pack("ii", 8, len(data)))
+            self._sendall(data)
+
         else:
             raise Exception("unknown type in send_data")
 
@@ -604,6 +611,13 @@ class _socketBase(object):
         elif type_code == 7:  # NumPy array:
             a = np.load(_fileSocketAdapter(self))
             return a
+
+        elif type_code == 8: # python dict
+            raw_data = self.read_type("i")
+            length, = struct.unpack("i", raw_data)
+            data = self.read_type(None, length)
+            return json.loads(data)
+
         assert False, "Data read type error"
 
     def close(self):
